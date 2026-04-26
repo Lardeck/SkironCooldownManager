@@ -227,7 +227,7 @@ local function AddBarSettings(parent, title, settings, includeManaRoleSettings)
 	local barHeight = AceGUI:Create("Slider")
 	barHeight:SetRelativeWidth(0.5)
 	barHeight:SetLabel("Bar Height")
-	barHeight:SetSliderValues(8, 40, 0.1)
+	barHeight:SetSliderValues(3, 40, 0.1)
 	barHeight:SetValue(settings.height)
 	barHeight:SetCallback("OnValueChanged", function(_, _, value)
 		settings.height = value
