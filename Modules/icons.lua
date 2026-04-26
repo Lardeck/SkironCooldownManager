@@ -266,7 +266,10 @@ local function ProcessSingleChild(child, validChildren, categoryIndex, isBuffIco
 		return
 	end
 
-	local cooldownID = child.cooldownID
+	local oldCooldownID = child.SCMCooldownID
+	local oldGroup = child.SCMGroup
+	local activeScopedAnchorGroups = Cache.activeScopedAnchorGroups
+	local cooldownID = child:GetCooldownID()
 	local categoryConfig = categoryIndex and SCM.defaultCooldownViewerConfig[categoryIndex]
 	local info = categoryConfig and (categoryConfig[cooldownID] or SCM.defaultCooldownViewerConfig.cooldownIDs[cooldownID])
 	local spellID = info and (info.overrideSpellID or info.spellID)
@@ -278,6 +281,14 @@ local function ProcessSingleChild(child, validChildren, categoryIndex, isBuffIco
 
 	local configID, childData = GetSpellConfigByCooldownID(SCM.spellConfig, cooldownID)
 	if not (cooldownID and spellID and childData) then
+		if child.SCMShouldBeVisible and child.SCMSpellID then
+			print("HIDE", cooldownID, child.SCMSpellID, C_Spell.GetSpellName(child.SCMSpellID))
+		end
+
+		if activeScopedAnchorGroups and oldGroup then
+			activeScopedAnchorGroups[oldGroup] = true
+		end
+
 		Utils.ResetChildSCMState(child)
 		Icons.SetChildVisibilityState(child, false, true)
 		return
@@ -286,9 +297,24 @@ local function ProcessSingleChild(child, validChildren, categoryIndex, isBuffIco
 	local group = GetConfiguredGroupForCategory(childData, categoryIndex)
 	local groupConfig = childData.anchorGroup and childData.anchorGroup[group]
 	if not (group and groupConfig) then
+		if child.SCMShouldBeVisible and child.SCMSpellID then
+			print("HIDE", cooldownID, child.SCMSpellID, C_Spell.GetSpellName(child.SCMSpellID))
+		end
+
+		if activeScopedAnchorGroups and oldGroup then
+			activeScopedAnchorGroups[oldGroup] = true
+		end
+
 		Utils.ResetChildSCMState(child)
 		Icons.SetChildVisibilityState(child, false, true)
 		return
+	end
+
+	if activeScopedAnchorGroups and (oldCooldownID ~= cooldownID or oldGroup ~= group) then
+		if oldGroup then
+			activeScopedAnchorGroups[oldGroup] = true
+		end
+		activeScopedAnchorGroups[group] = true
 	end
 
 	AddChildToGroup(validChildren, group, child)
@@ -320,6 +346,9 @@ local function ProcessSingleBuffBarChild(child, validChildren, categoryIndex, op
 		return
 	end
 
+	local oldCooldownID = child.SCMCooldownID
+	local oldGroup = child.SCMGroup
+	local activeScopedAnchorGroups = Cache.activeScopedAnchorGroups
 	local cooldownID = child:GetCooldownID()
 	local categoryConfig = categoryIndex and SCM.defaultCooldownViewerConfig[categoryIndex]
 	local info = categoryConfig and (categoryConfig[cooldownID] or SCM.defaultCooldownViewerConfig.cooldownIDs[cooldownID])
@@ -332,6 +361,10 @@ local function ProcessSingleBuffBarChild(child, validChildren, categoryIndex, op
 
 	local configID, childData = GetSpellConfigByCooldownID(SCM.spellConfig, cooldownID)
 	if not (cooldownID and spellID and childData) then
+		if activeScopedAnchorGroups and oldGroup then
+			activeScopedAnchorGroups[oldGroup] = true
+		end
+
 		Utils.ResetChildSCMState(child)
 		Icons.SetChildVisibilityState(child, false, true)
 		return
@@ -340,9 +373,20 @@ local function ProcessSingleBuffBarChild(child, validChildren, categoryIndex, op
 	local group = childData.source[TRACKED_BAR_CATEGORY]
 	local groupConfig = childData.anchorGroup and childData.anchorGroup[group]
 	if not (group and groupConfig) then
+		if activeScopedAnchorGroups and oldGroup then
+			activeScopedAnchorGroups[oldGroup] = true
+		end
+
 		Utils.ResetChildSCMState(child)
 		Icons.SetChildVisibilityState(child, false, true)
 		return
+	end
+
+	if activeScopedAnchorGroups and (oldCooldownID ~= cooldownID or oldGroup ~= group) then
+		if oldGroup then
+			activeScopedAnchorGroups[oldGroup] = true
+		end
+		activeScopedAnchorGroups[group] = true
 	end
 
 	AddChildToGroup(validChildren, group, child)
