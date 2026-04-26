@@ -1,5 +1,5 @@
 ## Interface: 120001
-## Title: |cFF4080FFSkiron|rCooldownManager
+## Title: |cFF4080FFSkiron|r|cFFFFFFFFCooldownManager|r
 ## Author: Permok
 ## Version @project-version@
 ## SavedVariables: SkironCooldownManagerDB
