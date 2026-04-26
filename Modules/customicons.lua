@@ -854,7 +854,7 @@ function SCM:AddCustomIcon(anchorGroup, iconType, configID, order, uniqueID, isG
 		anchorGroup = anchorGroup,
 		order = order,
 		loadClasses = GetDefaultLoadClasses(),
-		loadRaces = Constants.Races,
+		loadRaces = SCM.Constants.Races,
 		loadRoles = { ["TANK"] = true, ["HEALER"] = true, ["DAMAGER"] = true },
 	}
 

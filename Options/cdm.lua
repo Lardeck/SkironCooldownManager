@@ -58,6 +58,14 @@ local function GetDefaultCustomIconLoadClasses()
 	return loadClasses
 end
 
+local function GetDefaultCustomIconLoadRaces()
+	local loadRaces = {}
+	for raceID in pairs(SCM.Constants.Races) do
+		loadRaces[raceID] = true
+	end
+	return loadRaces
+end
+
 local function GetDefaultLoadRaceNames()
 	local dualFactionRaces = {}
 	local loadedRaces = {}
@@ -1372,14 +1380,14 @@ local function SelectAnchor(anchorWidget, frame, anchorIndex, anchorTabsTbl, mod
 										loadRaces:SetList(GetDefaultLoadRaceNames())
 										loadRaces:SetMultiselect(true)
 										loadRaces:SetCallback("OnValueChanged", function(_, _, key, value)
-											buttonConfig.loadRaces = buttonConfig.loadRaces or SCM.Constants.Races
-											buttonConfig.loadRaces[key] = value
-											ApplyIconConfigUpdate()
-										end)
+												buttonConfig.loadRaces = buttonConfig.loadRaces or GetDefaultCustomIconLoadRaces()
+												buttonConfig.loadRaces[key] = value
+												ApplyIconConfigUpdate()
+											end)
 
-										if not buttonConfig.loadRaces then
-											buttonConfig.loadRaces = SCM.Constants.Races
-										end
+											if not buttonConfig.loadRaces then
+												buttonConfig.loadRaces = GetDefaultCustomIconLoadRaces()
+											end
 
 										for key, value in pairs(buttonConfig.loadRaces) do
 											loadRaces:SetItemValue(key, value)

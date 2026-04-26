@@ -275,7 +275,6 @@ Constants.Races = {
 	[9] = true, -- Goblin
 	[10] = true, -- Blood Elf
 	[11] = true, -- Draenei
-	[12] = true, -- Fel Orc
 	[22] = true, -- Worgen
 	[25] = true, -- Pandaren (Alliance)
 	[26] = true, -- Pandaren (Horde)
