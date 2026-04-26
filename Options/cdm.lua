@@ -545,6 +545,7 @@ local function SelectAdvancedRowSettings(self, tabGroup, rowConfig, rowIndex, an
 	if tabGroup == "general" then
 		local keepAspectRatio = AceGUI:Create("CheckBox")
 		keepAspectRatio:SetLabel("Lock Aspect Ratio")
+		keepAspectRatio:SetDescription("Lock Icon Width & Height together.")
 		keepAspectRatio:SetRelativeWidth(0.5)
 		keepAspectRatio:SetValue(rowConfig.keepAspectRatio)
 		keepAspectRatio:SetCallback("OnValueChanged", function(_, _, value)
@@ -554,6 +555,7 @@ local function SelectAdvancedRowSettings(self, tabGroup, rowConfig, rowIndex, an
 
 		local hardLimit = AceGUI:Create("CheckBox")
 		hardLimit:SetLabel("Hard Limit")
+		hardLimit:SetDescription("Prevents the row from expanding from the set Limit.")
 		hardLimit:SetRelativeWidth(0.5)
 		hardLimit:SetValue(rowConfig.hardLimit)
 		hardLimit:SetCallback("OnValueChanged", function(_, _, value)
@@ -566,6 +568,7 @@ local function SelectAdvancedRowSettings(self, tabGroup, rowConfig, rowIndex, an
 			local fixedWidth
 			local useFixedWidth = AceGUI:Create("CheckBox")
 			useFixedWidth:SetLabel("Use Fixed Width")
+			useFixedWidth:SetDescription("Define a Fixed Width for this anchor.")
 			useFixedWidth:SetRelativeWidth(0.5)
 			useFixedWidth:SetValue(rowConfig.useFixedWidth)
 			useFixedWidth:SetCallback("OnValueChanged", function(_, _, value)
