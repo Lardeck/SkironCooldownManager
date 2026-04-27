@@ -101,22 +101,24 @@ local function ApplyCooldownStyle(child, options)
 
 		hooksecurefunc(cooldownFrame, "SetCooldown", function(self)
 			local parent = self:GetParent()
-
-			if options.recolorActiveSwipe and self:GetUseAuraDisplayTime() then
-				if not options.disableRegularIconActiveSwipe or (parent.SCMConfig and parent.SCMConfig.forceActiveSwipe) then
-					self:SetSwipeColor(unpack(options.activeSwipeColor))
-					self:SetReverse(options.reverseActiveSwipe)
+			RunNextFrame(function()
+				if options.recolorActiveSwipe and parent.auraInstanceID then
+					if not options.disableRegularIconActiveSwipe or (parent.SCMConfig and parent.SCMConfig.forceActiveSwipe) or parent.SCMBuffOptions then
+						self:SetSwipeColor(unpack(options.activeSwipeColor))
+						self:SetReverse(options.reverseActiveSwipe)
+					elseif options.recolorNormalSwipe then
+						self:SetSwipeColor(unpack(options.normalSwipeColor))
+						self:SetReverse(false)
+					else
+						self:SetSwipeColor(0, 0, 0, 0.7)
+					end
 				elseif options.recolorNormalSwipe then
-					self:SetReverse(false)
 					self:SetSwipeColor(unpack(options.normalSwipeColor))
+					self:SetReverse(false)
+				else
+					self:SetSwipeColor(0, 0, 0, 0.7)
 				end
-			elseif options.recolorNormalSwipe then
-				self:SetReverse(false)
-				self:SetSwipeColor(unpack(options.normalSwipeColor))
-			else
-				self:SetSwipeColor(0, 0, 0, 0.7)
-			end
-
+			end)
 			ApplyCooldownFont(self, options)
 		end)
 
