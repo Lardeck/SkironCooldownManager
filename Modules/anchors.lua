@@ -242,3 +242,49 @@ function SCM:ApplyCustomAnchors(maxGroupWidth, rowConfig)
 		end
 	end
 end
+
+--- Copies anchorConfig and buffBarsAnchorConfig from a source class/spec into the
+--- current logged-in spec, then live-applies the result.
+---@param sourceClass string  Uppercase class file name, e.g. "WARRIOR"
+---@param sourceSpecID number  Spec ID integer, e.g. 71
+function SCM:CopyAnchorConfig(sourceClass, sourceSpecID)
+	local targetClass = self.currentClass
+	local targetSpecID = self.currentSpecID
+
+	-- Resolve source anchor data.  Prefer already-saved profile data; fall back to
+	-- the registered class defaults, then the global default anchor config.
+	local sourceProfile = self.db.profile[sourceClass] and self.db.profile[sourceClass][sourceSpecID]
+	local sourceAnchorConfig
+	local sourceBuffBarsAnchorConfig
+
+	if sourceProfile then
+		sourceAnchorConfig = sourceProfile.anchorConfig
+		sourceBuffBarsAnchorConfig = sourceProfile.buffBarsAnchorConfig
+	else
+		-- Source spec has never been opened; try the class registration data.
+		local classData = self.DB.classes[sourceClass]
+		if classData then
+			sourceAnchorConfig = classData.anchorConfig and classData.anchorConfig[sourceSpecID]
+			sourceBuffBarsAnchorConfig = classData.buffBarsAnchorConfig and classData.buffBarsAnchorConfig[sourceSpecID]
+		end
+		-- Final fallback: global defaults.
+		if not sourceAnchorConfig then
+			sourceAnchorConfig = self.DB.defaultAnchorConfig
+		end
+		if not sourceBuffBarsAnchorConfig then
+			sourceBuffBarsAnchorConfig = {}
+		end
+	end
+
+	-- Ensure the target entry exists before writing into it.
+	self.db.profile[targetClass] = self.db.profile[targetClass] or {}
+	self.db.profile[targetClass][targetSpecID] = self.db.profile[targetClass][targetSpecID] or CopyTable(self.DefaultClassConfig)
+
+	local targetProfile = self.db.profile[targetClass][targetSpecID]
+	targetProfile.anchorConfig = CopyTable(sourceAnchorConfig)
+	targetProfile.buffBarsAnchorConfig = CopyTable(sourceBuffBarsAnchorConfig)
+
+	-- Re-load live references and refresh all anchor frames.
+	self:UpdateDB()
+	self:ApplyAllCDManagerConfigs()
+end
