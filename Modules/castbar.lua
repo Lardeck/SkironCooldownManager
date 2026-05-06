@@ -134,7 +134,7 @@ local function UpdateStatusBarLook(fillColor, bgColor)
 	local options = castBar.barOptions or SCM.db.profile.options.castBar
 	local profileOptions = SCM.db.profile.options
 
-	local borderSize = SCM:PixelPerfect() * profileOptions.borderSize
+	local borderSize = profileOptions.borderSize
 	local texturePath = LSM:Fetch("statusbar", options.texture) or "Interface\\TargetingFrame\\UI-StatusBar"
 	local borderColor = options.borderColor
 	local backgroundColor = bgColor or options.bgColor
@@ -159,13 +159,13 @@ local function UpdateStatusBarLook(fillColor, bgColor)
 	local outerWidth = max(castBar:GetWidth(), 1)
 	local outerHeight = max(castBar:GetHeight(), 1)
 	local innerWidth = max(outerWidth - borderSize * 2, 1)
-	local spacing = iconOptions.enable and min(SCM:PixelPerfect(ICON_SPACING), max(innerWidth - 1, 0)) or 0
+	local spacing = iconOptions.enable and min(ICON_SPACING, max(innerWidth - 1, 0)) or 0
 	local iconSize = 0
 	local iconZoom = min(iconOptions.zoom, 0.49)
 
 	if iconOptions.enable then
 		local configuredIconSize = max(iconOptions.matchBarHeight and options.height or iconOptions.size, 1)
-		iconSize = min(SCM:PixelPerfect(configuredIconSize), outerHeight, max(outerWidth - borderSize - spacing - 1, 0))
+		iconSize = min(configuredIconSize, outerHeight, max(outerWidth - borderSize - spacing - 1, 0))
 	end
 
 	castBar.Status:ClearAllPoints()
@@ -180,11 +180,11 @@ local function UpdateStatusBarLook(fillColor, bgColor)
 	if iconOptions.enable and iconSize > 0 then
 		castBar.IconFrame:SetSize(iconSize, iconSize)
 		if iconOptions.position == "RIGHT" then
-			castBar.IconFrame:SetPoint("RIGHT", castBar, "RIGHT", -borderSize + SCM:PixelPerfect(), 0)
+			castBar.IconFrame:SetPoint("RIGHT", castBar, "RIGHT", -borderSize + 1, 0)
 			castBar.Status:SetPoint("TOPLEFT", castBar, "TOPLEFT", borderSize, -borderSize)
 			castBar.Status:SetPoint("BOTTOMRIGHT", castBar, "BOTTOMRIGHT", -(iconSize + spacing), borderSize)
 		else
-			castBar.IconFrame:SetPoint("LEFT", castBar, "LEFT", borderSize - SCM:PixelPerfect(), 0)
+			castBar.IconFrame:SetPoint("LEFT", castBar, "LEFT", borderSize - 1, 0)
 			castBar.Status:SetPoint("TOPLEFT", castBar, "TOPLEFT", iconSize + spacing, -borderSize)
 			castBar.Status:SetPoint("BOTTOMRIGHT", castBar, "BOTTOMRIGHT", -borderSize, borderSize)
 		end

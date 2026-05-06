@@ -71,12 +71,11 @@ local function UpdateResourceBarBackdropInfo(barOptions)
 	end
 
 	local backdropInfo = CopyTable(BACKDROP_SCM_PIXEL)
-	-- FUCK PIXEL PERFECT ISSUES
 	backdropInfo.edgeSize = backdropSize
 	return backdropInfo
 end
 
-local function CalculateResourceBarPixelInset(region)
+local function CalculateResourceBarInset(region)
 	if region.barOptions and not region.barOptions.showBorder then
 		return 0
 	end
@@ -86,7 +85,7 @@ local function CalculateResourceBarPixelInset(region)
 		return 0
 	end
 
-	return PixelUtil.GetNearestPixelSize(backdropSize * 0.5, region:GetEffectiveScale(), 1)
+	return backdropSize * 0.5
 end
 
 local function UpdateResourceBarBorder(bar, barOptions)
@@ -114,10 +113,10 @@ local function UpdateResourceBarBorder(bar, barOptions)
 end
 
 local function SetRegionPoint(region, bar)
-	local inset = CalculateResourceBarPixelInset(bar)
+	local inset = CalculateResourceBarInset(bar)
 	region:ClearAllPoints()
-	PixelUtil.SetPoint(region, "TOPLEFT", bar, "TOPLEFT", inset, -inset)
-	PixelUtil.SetPoint(region, "BOTTOMRIGHT", bar, "BOTTOMRIGHT", -inset, inset)
+	region:SetPoint("TOPLEFT", bar, "TOPLEFT", inset, -inset)
+	region:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", -inset, inset)
 	return inset
 end
 
@@ -322,7 +321,7 @@ local function UpdateBarTextPosition(bar, barOptions)
 
 	local anchorRegion = bar.Text or bar
 	text:ClearAllPoints()
-	PixelUtil.SetPoint(text, "CENTER", anchorRegion, "CENTER", barOptions.textXOffset, barOptions.textYOffset, 1, 1)
+	text:SetPoint("CENTER", anchorRegion, "CENTER", barOptions.textXOffset, barOptions.textYOffset)
 end
 
 local function ResetResourceBar(bar)
@@ -681,10 +680,9 @@ local function InitializeBarSkin(bar)
 		bar.BorderFrame = CreateFrame("Frame", nil, bar, "BackdropTemplate")
 	end
 
-	-- If anyone wants to explain to me how to fix this then I'm all ears
 	bar.BorderFrame:ClearAllPoints()
-	PixelUtil.SetPoint(bar.BorderFrame, "TOPLEFT", bar, "TOPLEFT", 0, 0)
-	PixelUtil.SetPoint(bar.BorderFrame, "BOTTOMRIGHT", bar, "BOTTOMRIGHT", 0, 0)
+	bar.BorderFrame:SetPoint("TOPLEFT", bar, "TOPLEFT", 0, 0)
+	bar.BorderFrame:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 0, 0)
 
 	local barOptions = bar.barOptions or SCM.db.profile.options.resourceBar
 	UpdateResourceBarBorder(bar, barOptions)
@@ -778,7 +776,7 @@ end
 
 local function SetBarHeight(bar, height)
 	local previousHeight = bar:GetHeight() or 0
-	PixelUtil.SetHeight(bar, height, height)
+	bar:SetHeight(height)
 
 	return previousHeight ~= (bar:GetHeight() or 0)
 end
@@ -827,9 +825,8 @@ function SCMResourceBarControllerMixin:ApplyFrameWidthOptions(bar)
 			end)
 		end
 
-		--No idea whats going in with these fucking pixels. BRB taking a math class
 		self:ClearAllPoints()
-		PixelUtil.SetPoint(self, generalBarOptions.point, anchor, generalBarOptions.relativePoint, generalBarOptions.xOffset, generalBarOptions.yOffset)
+		self:SetPoint(generalBarOptions.point, anchor, generalBarOptions.relativePoint, generalBarOptions.xOffset, generalBarOptions.yOffset)
 
 		return widthChanged
 	end
@@ -1089,9 +1086,9 @@ function SCMResourceBarControllerMixin:UpdateBarLayout()
 	end
 
 	if primaryShown and secondaryShown then
-		PixelUtil.SetHeight(self, primaryHeight + secondaryHeight + spacing)
+		self:SetHeight(primaryHeight + secondaryHeight + spacing)
 	elseif primaryShown or secondaryShown then
-		PixelUtil.SetHeight(self, primaryShown and primaryHeight or secondaryHeight)
+		self:SetHeight(primaryShown and primaryHeight or secondaryHeight)
 	else
 		self:SetHeight(0)
 	end

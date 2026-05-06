@@ -50,8 +50,8 @@ local function OnSpellAlertManagerShowAlert(_, child)
 	local options = SCM.db.profile.options
 	if not child.SCMConfig or not options.useCustomGlow or child.SCMActiveGlow then
 		if child.SCMWidth and child.SCMHeight then
-			local width = SCM:PixelPerfect(child.SCMWidth)
-			local height = SCM:PixelPerfect(child.SCMHeight)
+			local width = child.SCMWidth
+			local height = child.SCMHeight
 
 			local alert = child.SpellActivationAlert
 			alert:SetSize(width * 1.4, height * 1.4)
@@ -119,7 +119,6 @@ end
 
 function SCM:PLAYER_ENTERING_WORLD(isInitialLogin, isReload)
 	if isInitialLogin or isReload then
-		--SCM.Cache.cachedViewerScale = SCM:PixelPerfect()
 		SCM:UpdateCooldownInfo(true, CooldownViewerSettings:GetDataProvider())
 		SCM:UpdateDB()
 
@@ -185,8 +184,7 @@ function SCM:EDIT_MODE_LAYOUTS_UPDATED()
 	SCM:ApplyOptions()
 end
 
-local function RefreshPixelPerfectLayout()
-	SCM:InvalidatePixelPerfectCache()
+local function RefreshLayoutAfterScaleChange()
 	SCM:ApplyAllCDManagerConfigs()
 end
 
@@ -205,16 +203,16 @@ function SCM:ACTIVE_PLAYER_SPECIALIZATION_CHANGED()
 end
 
 function SCM:UI_SCALE_CHANGED()
-	RefreshPixelPerfectLayout()
+	RefreshLayoutAfterScaleChange()
 end
 
 function SCM:DISPLAY_SIZE_CHANGED()
-	RefreshPixelPerfectLayout()
+	RefreshLayoutAfterScaleChange()
 end
 
 function SCM:CVAR_UPDATE(cvarName)
 	if cvarName == "uiScale" then
-		RefreshPixelPerfectLayout()
+		RefreshLayoutAfterScaleChange()
 	end
 end
 

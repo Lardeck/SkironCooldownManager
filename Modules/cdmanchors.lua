@@ -55,7 +55,7 @@ local function OnChildSetPoint(child)
 
 	child.SCMAnchorFrame = anchorFrame
 	anchorFrame.ClearAllPoints(child)
-	anchorFrame.SetPoint(child, anchorData[1], anchorFrame, anchorData[3], SCM:PixelPerfect(anchorData[4]), SCM:PixelPerfect(anchorData[5]))
+	anchorFrame.SetPoint(child, anchorData[1], anchorFrame, anchorData[3], anchorData[4], anchorData[5])
 end
 
 function SCM:GetAnchorPivot(point, growDir)
@@ -175,21 +175,21 @@ end
 local function OnChildSetSize(child)
 	local anchorFrame = child.SCMAnchorFrame
 	if anchorFrame then
-		anchorFrame.SetSize(child, SCM:PixelPerfect(child.SCMWidth), SCM:PixelPerfect(child.SCMHeight))
+		anchorFrame.SetSize(child, child.SCMWidth, child.SCMHeight)
 	end
 end
 
 local function OnChildSetWidth(child)
 	local anchorFrame = child.SCMAnchorFrame
 	if anchorFrame then
-		anchorFrame.SetWidth(child, SCM:PixelPerfect(child.SCMWidth))
+		anchorFrame.SetWidth(child, child.SCMWidth)
 	end
 end
 
 local function OnChildSetHeight(child)
 	local anchorFrame = child.SCMAnchorFrame
 	if anchorFrame then
-		anchorFrame.SetHeight(child, SCM:PixelPerfect(child.SCMHeight))
+		anchorFrame.SetHeight(child, child.SCMHeight)
 	end
 end
 
@@ -203,18 +203,18 @@ function SCM:UpdateManagedAnchorChild(child, groupAnchor, startPoint, offsetX, o
 	child:SetScale(Cache.cachedViewerScale or 1)
 
 	if child.SCMBuffBar then
-		child:SetWidth(self:PixelPerfect(width))
-		child:SetHeight(self:PixelPerfect(height))
+		child:SetWidth(width)
+		child:SetHeight(height)
 
 		if child.Icon then
-			child.Icon:SetSize(self:PixelPerfect(height), self:PixelPerfect(height))
+			child.Icon:SetSize(height, height)
 		end
 
 		if child.Bar and child.Bar.Pip then
-			child.Bar.Pip:SetHeight(self:PixelPerfect(height) * 1.4)
+			child.Bar.Pip:SetHeight(height * 1.4)
 		end
 	else
-		child:SetSize(self:PixelPerfect(width), self:PixelPerfect(height))
+		child:SetSize(width, height)
 	end
 
 	if not child.SCMSizeHook and not child.SCMCustom then
@@ -315,9 +315,9 @@ function SCM:GetAnchor(group, point, anchor, relativePoint, xOffset, yOffset, gr
 	end
 
 	if resetSize then
-		anchorFrame:SetSize(SCM:PixelPerfect(iconSize), SCM:PixelPerfect(iconSize))
+		anchorFrame:SetSize(iconSize, iconSize)
 	else
-		anchorFrame:SetSize(SCM:PixelPerfect(max(anchorFrame:GetWidth(), iconSize)), SCM:PixelPerfect(max(anchorFrame:GetHeight(), iconSize)))
+		anchorFrame:SetSize(max(anchorFrame:GetWidth(), iconSize), max(anchorFrame:GetHeight(), iconSize))
 	end
 	anchorFrame:SetScale(Cache.cachedViewerScale or 1)
 	anchorFrame:ClearAllPoints()

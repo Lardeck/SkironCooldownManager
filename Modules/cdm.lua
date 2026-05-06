@@ -329,7 +329,7 @@ local function LayoutAnchorGroup(group, visibleChildren, anchorConfig, options, 
 	end
 
 	if not InCombatLockdown() and groupAnchor then
-		groupAnchor:SetSize(SCM:PixelPerfect(effectiveWidth), SCM:PixelPerfect(effectiveHeight))
+		groupAnchor:SetSize(effectiveWidth, effectiveHeight)
 		state.appliedWidth = effectiveWidth
 		state.appliedHeight = effectiveHeight
 		state.appliedAnchorOffsetY = anchorOffsetY

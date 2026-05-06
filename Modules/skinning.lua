@@ -140,7 +140,7 @@ function SCM:SkinChild(child, childConfig)
 		return
 	end
 
-	local borderSize = SCM:PixelPerfect() * options.borderSize
+	local borderSize = options.borderSize
 	local borderColor = options.borderColor
 
 	if child.SCMSkinned and self.OptionsFrame ~= nil and self.OptionsFrame:IsShown() then
@@ -230,7 +230,7 @@ end
 
 function SCM:SkinBuffBars()
 	local options = SCM.db.profile.options.buffBarOptions
-	local borderSize = SCM:PixelPerfect() * options.borderSize
+	local borderSize = options.borderSize
 	local borderColor = options.borderColor
 	local backgroundColor = options.backgroundColor
 	local foregroundColor = options.foregroundColor
