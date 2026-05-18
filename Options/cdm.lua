@@ -1602,7 +1602,7 @@ local function SelectAnchor(widget, parentWidget, anchorIndex, anchorTabsTbl, mo
 
 										local loadSpellKnown = AceGUI:Create("EditBox")
 										loadSpellKnown:SetRelativeWidth(0.5)
-										loadSpellKnown:SetLabel("SpellID")
+										loadSpellKnown:SetLabel("Spell ID")
 										loadSpellKnown:SetText(buttonConfig.spellKnownSpellID and tostring(buttonConfig.spellKnownSpellID) or "")
 										loadSpellKnown:SetDisabled(not buttonConfig.useSpellKnown)
 										loadSpellKnown:SetCallback("OnEnterPressed", function(_, _, value)
