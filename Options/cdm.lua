@@ -1595,7 +1595,7 @@ local function SelectAnchor(widget, parentWidget, anchorIndex, anchorTabsTbl, mo
 										iconSettingsTabs:AddChild(loadRaces)
 
 										local useSpellKnown = AceGUI:Create("CheckBox")
-										useSpellKnown:SetLabel("Race")
+										useSpellKnown:SetLabel("Spell Known")
 										useSpellKnown:SetRelativeWidth(0.5)
 										useSpellKnown:SetValue(buttonConfig.useSpellKnown)
 										iconSettingsTabs:AddChild(useSpellKnown)
@@ -1603,7 +1603,7 @@ local function SelectAnchor(widget, parentWidget, anchorIndex, anchorTabsTbl, mo
 										local loadSpellKnown = AceGUI:Create("EditBox")
 										loadSpellKnown:SetRelativeWidth(0.5)
 										loadSpellKnown:SetLabel("SpellID")
-										loadSpellKnown:SetText(tostring(buttonConfig.spellKnownSpellID) or "")
+										loadSpellKnown:SetText(buttonConfig.spellKnownSpellID and tostring(buttonConfig.spellKnownSpellID) or "")
 										loadSpellKnown:SetDisabled(not buttonConfig.useSpellKnown)
 										loadSpellKnown:SetCallback("OnEnterPressed", function(_, _, value)
 											buttonConfig.spellKnownSpellID = tonumber(value)
