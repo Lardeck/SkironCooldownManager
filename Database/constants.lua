@@ -579,3 +579,8 @@ Constants.FixBlizzardSpells = {
 	[207684] = true, -- Sigil or Misery
 	[325153] = true, -- Exploding Keg
 }
+
+-- C_Spell.GetSpellCooldown returns a very short cooldown but Blizzard never sets the cooldown which breaks hideWhileNotReady
+Constants.CheckCooldownFrameSpells = {
+	[190925] = true, -- Harpoon
+}

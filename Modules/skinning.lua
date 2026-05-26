@@ -134,34 +134,40 @@ local function ApplyCooldownStyle(child, options)
 		hooksecurefunc(cooldownFrame, "SetCooldown", function(self)
 			local options = SCM.db.profile.options
 			local parent = self:GetParent()
-			local forceActiveSwipe = parent.SCMConfig and parent.SCMConfig.forceActiveSwipe
 
 			SCM.Cooldowns.ApplyNumericRuleFormatter(self)
 
-			if parent.auraInstanceID or parent.SCMFakeAuraInstanceID or parent.SCMBuffOptions then
-				if options.disableRegularIconActiveSwipe and not forceActiveSwipe then
-					if options.recolorNormalSwipe then
-						self:SetSwipeColor(unpack(options.normalSwipeColor))
-					else
-						self:SetSwipeColor(0, 0, 0, 0.7)
-					end
+			-- [SCM-fork] Decide swipe direction by SEMANTICS, not by aura-state.
+			-- showingDuration == true  -> this swipe is counting down an aura/buff duration
+			--                             (bright -> dark, "buff about to expire")
+			-- showingDuration == false -> this swipe is a spell cooldown
+			--                             (dark -> bright, "ability about to be ready")
+			-- GetUseAuraDisplayTime() is the Blizzard signal for "swipe is showing aura time".
+			-- BuffIcon / BuffBar children are always durations, so treat them as such even if
+			-- the method is unavailable on the frame.
+			local showingDuration =
+				(self.GetUseAuraDisplayTime and self:GetUseAuraDisplayTime())
+				or parent.SCMBuffOptions
+				or parent.SCMBuffBar
 
-					if parent.SCMBuffOptions then
-						self:SetReverse(options.reverseActiveSwipe)
-					end
-				else
-					if options.recolorActiveSwipe then
-						self:SetSwipeColor(unpack(options.activeSwipeColor))
-					end
-
-					self:SetReverse(options.reverseActiveSwipe)
+			if showingDuration then
+				self:SetReverse(true)   -- duration: bright -> dark
+				-- Only recolor when explicitly asked; otherwise leave Blizzard's
+				-- native active-swipe tint intact (matches original behavior).
+				if options.recolorActiveSwipe then
+					self:SetSwipeColor(unpack(options.activeSwipeColor))
+				elseif options.recolorNormalSwipe then
+					self:SetSwipeColor(unpack(options.normalSwipeColor))
 				end
-			elseif options.recolorNormalSwipe then
-				self:SetSwipeColor(unpack(options.normalSwipeColor))
-				self:SetReverse(false)
 			else
-				self:SetSwipeColor(0, 0, 0, 0.7)
+				self:SetReverse(false)  -- cooldown: dark -> bright
+				if options.recolorNormalSwipe then
+					self:SetSwipeColor(unpack(options.normalSwipeColor))
+				else
+					self:SetSwipeColor(0, 0, 0, 0.7)
+				end
 			end
+
 			ApplyCooldownFont(self, options)
 		end)
 

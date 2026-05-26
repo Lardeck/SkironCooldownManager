@@ -155,7 +155,12 @@ function Cooldowns.IsChildOnCooldown(child)
 	end
 
 	local spellCooldownInfo = C_Spell.GetSpellCooldown(child.SCMSpellID)
-	return spellCooldownInfo and spellCooldownInfo.isActive and not spellCooldownInfo.isOnGCD
+	local isOnCooldown = spellCooldownInfo and spellCooldownInfo.isActive and not spellCooldownInfo.isOnGCD
+	if Constants.CheckCooldownFrameSpells[child.SCMSpellID] then
+		return isOnCooldown and child.Cooldown:IsVisible()
+	end
+
+	return isOnCooldown
 end
 
 function Cooldowns.SetNormalCooldown(self, parent)
@@ -283,7 +288,7 @@ function Cooldowns.SetupCooldownHooks(child)
 	child.Cooldown:HookScript("OnCooldownDone", function(self, ...)
 		local parent = self:GetParent()
 		parent.Icon.SCMDesaturated = nil
-		OnRegularCooldownChanged(self)
+		OnRegularCooldownChanged(self, "DONE")
 	end)
 	child.SCMRegularCooldownHook = true
 

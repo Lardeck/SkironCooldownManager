@@ -459,15 +459,6 @@ local function SelectGlobalSettingsTab(tabWidget, group, options)
 		end)
 		activeSwipeSettings:AddChild(activeSwipeColor)
 
-		local reverseActiveSwipe = AceGUI:Create("CheckBox")
-		reverseActiveSwipe:SetRelativeWidth(0.5)
-		reverseActiveSwipe:SetLabel("Reverse Active Swipe")
-		reverseActiveSwipe:SetValue(options.reverseActiveSwipe)
-		reverseActiveSwipe:SetCallback("OnValueChanged", function(_, _, value)
-			options.reverseActiveSwipe = value
-		end)
-		activeSwipeSettings:AddChild(reverseActiveSwipe)
-
 		local disableRegularIconActiveSwipe = AceGUI:Create("CheckBox")
 		disableRegularIconActiveSwipe:SetRelativeWidth(0.5)
 		disableRegularIconActiveSwipe:SetLabel("Disable On Regular Icons")

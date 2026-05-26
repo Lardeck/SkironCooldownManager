@@ -105,6 +105,28 @@ local function Temporary(self, frame, group)
 	end)
 	uufSettings:AddChild(adjustHeight)
 
+	local heightOffset = AceGUI:Create("Slider")
+	heightOffset:SetRelativeWidth(0.5)
+	heightOffset:SetValue(options.anchorsHeightOffset)
+	heightOffset:SetLabel("Height Offset")
+	heightOffset:SetSliderValues(-50, 50, 0.1)
+	heightOffset:SetCallback("OnValueChanged", function(_, _, value)
+		options.anchorsHeightOffset = value
+		SCM:ApplyAllCDManagerConfigs()
+	end)
+	uufSettings:AddChild(heightOffset)
+
+	local xOffset = AceGUI:Create("Slider")
+	xOffset:SetRelativeWidth(0.5)
+	xOffset:SetValue(options.anchorsYOffset)
+	xOffset:SetLabel("Y-Offset")
+	xOffset:SetSliderValues(-50, 50, 0.1)
+	xOffset:SetCallback("OnValueChanged", function(_, _, value)
+		options.anchorsYOffset = value
+		SCM:ApplyAllCDManagerConfigs()
+	end)
+	uufSettings:AddChild(xOffset)
+
 	local resourceBarSettings = AceGUI:Create("InlineGroup")
 	resourceBarSettings:SetLayout("flow")
 	resourceBarSettings:SetFullWidth(true)
