@@ -534,38 +534,38 @@ Constants.Races = {
 
 Constants.FakeAuras = {
 	-- WARLOCK
-	[265187] = 15, -- Summon Tyrant
+	[265187] = 15, -- Summon Tyrant 15
 	[1288950] = 23, -- Grimoire: Fel Ravager
 	[104316] = 12, -- Call Dreadstalkers
 	[1276672] = 12, -- Summon Doomguard (not even Blizzard shows that)
 
 	-- PALADIN
-	[26573] = 12, -- Consecration
+	[26573] = true, -- Consecration 12
 
 	-- PRIEST
 	-- [373276] = 24, -- Idol of Yogg-Saron
-	[451234] = 6, -- Voidwrath
-	[34433] = 6, -- Shadowfiend
+	[451234] = true, -- Voidwrath 6
+	[34433] = true, -- Shadowfiend 6
 
 	-- SHAMAN
-	[5394] = 15, -- Healing Stream Totem
-	[108280] = 10, -- Healing Tide Totem
-	[98008] = 6, -- Spirit Link Totem
-	[192077] = 7, -- Wind Rush Totem
-	[355580] = 6, -- Static Field Totem
-	[192058] = 2, -- Capacitor Totem
-	[2484] = 20, -- Earthbind Totem
-	[8143] = 10, -- Tremor Totem
-	[383013] = 6, -- Poison Cleansing Totem
-	[204336] = 3, -- Grounding Totem
-	[204331] = 15, -- Counterstrike Totem
-	[460697] = 15, -- Totem of Wrath
-	[51485] = 20, -- Earthgrab Totem
-	[198103] = 30, -- Earth Elemental
+	[5394] = true, -- Healing Stream Totem 15
+	[108280] = true, -- Healing Tide Totem 10
+	[98008] = true, -- Spirit Link Totem 6
+	[192077] = true, -- Wind Rush Totem 7
+	[355580] = true, -- Static Field Totem 6
+	[192058] = true, -- Capacitor Totem 2
+	[2484] = true, -- Earthbind Totem 20
+	[8143] = true, -- Tremor Totem 10
+	[383013] = true, -- Poison Cleansing Totem 6
+	[204336] = true, -- Grounding Totem 3
+	[204331] = true, -- Counterstrike Totem 15
+	[460697] = true, -- Totem of Wrath 15
+	[51485] = true, -- Earthgrab Totem 20
+	[198103] = true, -- Earth Elemental 30
 	--[444995] = 25, -- Surging Totem
 
 	-- MONK
-	[322118] = 12, -- Invoke Yu'lon, the Jade Serpent
+	[322118] = true, -- Invoke Yu'lon, the Jade Serpent 12
 }
 
 Constants.TargetAuras = {

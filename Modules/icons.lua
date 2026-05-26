@@ -159,7 +159,9 @@ end
 local function OnHide(child)
 	if child.SCMGroup and (child.SCMChanged or child.SCMBuffBar) then
 		if child.SCMBuffBar then
-			if child.SCMAuraInstanceID and not child.SCMFakeAuraInstanceID and C_UnitAuras.GetAuraDataByAuraInstanceID(child.SCMAuraDataUnit, child.SCMAuraInstanceID) then
+			if child.SCMFakeAuraInstanceID and child.SCMFixedDuration and GetTime() < child.SCMFixedDuration then
+				return
+			elseif child.SCMAuraInstanceID and not child.SCMFakeAuraInstanceID and C_UnitAuras.GetAuraDataByAuraInstanceID(child.SCMAuraDataUnit, child.SCMAuraInstanceID) then
 				return
 			end
 
@@ -210,11 +212,16 @@ function Icons.SetupBuffBarHooks(child)
 	end
 	child.SCMShowHook = true
 
-	child:HookScript("OnShow", OnShow)
-
 	if Constants.FakeAuras[child.SCMSpellID] then
+		child:HookScript("OnShow", OnShow)
 		child:HookScript("OnHide", OnHide)
+
+		if type(Constants.FakeAuras[child.SCMSpellID]) == "number" then
+			child.SCMFixedDuration = GetTime() + Constants.FakeAuras[child.SCMSpellID]
+		end
+		-- DevTool:AddData(child)
 	else
+		child:HookScript("OnShow", OnShow)
 		hooksecurefunc(child, "OnAuraInstanceInfoCleared", OnHide)
 	end
 end
