@@ -61,12 +61,8 @@ local function ResetCustomIconFrame(_, frame)
 	frame.Icon:SetVertexColor(1, 1, 1, 1)
 	frame.Icon:SetDesaturated(false)
 	frame.Icon:SetTexture(nil)
-	frame.Icon:SetTexelSnappingBias(0)
-	frame.Icon:SetSnapToPixelGrid(false)
 	frame.CraftQuality:Hide()
 	frame.CraftQuality:SetTexture(nil)
-	frame.CraftQuality:SetTexelSnappingBias(0)
-	frame.CraftQuality:SetSnapToPixelGrid(false)
 	frame.Cooldown:Clear()
 	frame.Cooldown:SetReverse(false)
 	frame.GCDCooldown:Clear()
@@ -146,12 +142,6 @@ local function AcquireCustomIconFrame(customFrames, id)
 		frame.Cooldown:SetScript("OnCooldownDone", OnIconCooldownDone)
 		frame.GCDCooldown:SetScript("OnCooldownDone", OnIconCooldownDone)
 		frame.Cooldown:SetCountdownFont("GameFontHighlightHugeOutline")
-		frame.Icon:SetTexelSnappingBias(0)
-		frame.Icon:SetSnapToPixelGrid(false)
-		frame.CraftQuality:SetTexelSnappingBias(0)
-		frame.CraftQuality:SetSnapToPixelGrid(false)
-		frame.OutOfRange:SetTexelSnappingBias(0)
-		frame.OutOfRange:SetSnapToPixelGrid(false)
 		frame:HookScript("OnShow", OnCustomIconShow)
 		frame.SCMCustomIconInitialized = true
 	end
@@ -250,8 +240,6 @@ local function UpdateCustomIconCraftQuality(frame, iconType, config)
 	local craftQuality = frame.CraftQuality
 	craftQuality:Hide()
 	craftQuality:SetTexture(nil)
-	craftQuality:SetTexelSnappingBias(0)
-	craftQuality:SetSnapToPixelGrid(false)
 
 	if iconType ~= "item" or not config.showCraftQuality then
 		return
@@ -679,8 +667,6 @@ local function UpdateCustomIconFrameState(frame, config)
 
 	frame.SCMIconTexture = iconTexture
 	frame.Icon:SetTexture(iconTexture)
-	frame.Icon:SetTexelSnappingBias(0)
-	frame.Icon:SetSnapToPixelGrid(false)
 	frame.UpdateCooldown = UpdateCustomIconCooldown
 	frame.UpdateCharges = nil
 	UpdateCustomIconCraftQuality(frame, iconType, config)
@@ -955,8 +941,6 @@ local function ProcessCustomIcon(id, config, validChildren)
 			if frame.SCMIconTexture ~= iconTexture then
 				frame.SCMIconTexture = iconTexture
 				frame.Icon:SetTexture(iconTexture)
-				frame.Icon:SetTexelSnappingBias(0)
-				frame.Icon:SetSnapToPixelGrid(false)
 				UpdateCustomIconCraftQuality(frame, iconType, config)
 			end
 			local hasCount = SetCustomIconCountText(frame, iconType, config)

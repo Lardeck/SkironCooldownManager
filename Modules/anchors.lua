@@ -8,6 +8,7 @@ local function OnResourceBarWidthChanged(self)
 end
 
 function SCM:UpdateResourceBarWidth(maxGroupWidth)
+	maxGroupWidth = self:PixelPerfect(maxGroupWidth)
 	for _, resourceBarName in ipairs(SCM.db.profile.options.resourceBars) do
 		local resourceBar = _G[resourceBarName]
 		if resourceBar and resourceBar:IsShown() then
@@ -26,7 +27,7 @@ end
 function SCM:UpdateUUFValues(options, maxGroupWidth, rowConfig)
 	local offset = min((maxGroupWidth - 150), 0)
 	local mainAnchor = SCM:GetAnchor(1)
-	local height = floor((rowConfig[1].iconHeight or rowConfig[1].size) + 0.5) + options.anchorsHeightOffset
+	local height = floor(SCM:PixelPerfect(rowConfig[1].iconHeight or rowConfig[1].size) + 0.5) + options.anchorsHeightOffset
 
 	if UUF_Player then
 		if options.anchorUUF and options.anchorUUFRoles[(select(5, Utils.GetSpec()))] then

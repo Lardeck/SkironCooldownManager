@@ -507,6 +507,16 @@ local function SelectGlobalSettingsTab(tabWidget, group, options)
 		end)
 		iconSettings:AddChild(keepIconSquareRatio)
 
+		local experimentalPixelSettings  = AceGUI:Create("CheckBox")
+		experimentalPixelSettings:SetRelativeWidth(0.25)
+		experimentalPixelSettings:SetLabel("Experimental Skinning")
+		experimentalPixelSettings:SetValue(options.experimentalPixelSettings)
+		experimentalPixelSettings:SetCallback("OnValueChanged", function(_, _, value)
+			options.experimentalPixelSettings = value
+			SCM:ApplyAllCDManagerConfigs()
+		end)
+		iconSettings:AddChild(experimentalPixelSettings)
+
 		local borderSettings = AceGUI:Create("InlineGroup")
 		borderSettings:SetLayout("flow")
 		borderSettings:SetFullWidth(true)
