@@ -64,6 +64,8 @@ local function CreatePips(empoweredStages)
 		local color = stageColors[min(i, #stageColors)]
 		band:ClearAllPoints()
 		band:SetColorTexture(color.r, color.g, color.b, color.a)
+		band:SetTexelSnappingBias(0)
+		band:SetSnapToPixelGrid(false)
 		band:SetSize(max(totalWidth * stage, 1), totalHeight)
 		band:SetPoint("LEFT", castBar.Status, "LEFT", totalWidth * total, 0)
 		band:Show()
@@ -80,6 +82,8 @@ local function CreatePips(empoweredStages)
 				local color = tickOptions.color
 				tick:ClearAllPoints()
 				tick:SetColorTexture(color.r, color.g, color.b, color.a)
+				tick:SetTexelSnappingBias(0)
+				tick:SetSnapToPixelGrid(false)
 				tick:SetSize(tickOptions.width, totalHeight)
 				tick:SetPoint("CENTER", castBar.Status, "LEFT", totalWidth * total, 0)
 				tick:Show()
@@ -137,9 +141,13 @@ local function UpdateIconTexture(spellTexture)
 
 	if iconOptions.enable and spellTexture then
 		castBar.IconFrame.Icon:SetTexture(spellTexture)
+		castBar.IconFrame.Icon:SetTexelSnappingBias(0)
+		castBar.IconFrame.Icon:SetSnapToPixelGrid(false)
 		castBar.IconFrame:Show()
 	else
 		castBar.IconFrame.Icon:SetTexture(nil)
+		castBar.IconFrame.Icon:SetTexelSnappingBias(0)
+		castBar.IconFrame.Icon:SetSnapToPixelGrid(false)
 		castBar.IconFrame:Hide()
 	end
 end
@@ -149,7 +157,7 @@ local function UpdateStatusBarLook(fillColor, bgColor)
 	local options = castBar.barOptions or SCM.castBarConfig
 	local profileOptions = SCM.db.profile.options
 
-	local borderSize = SCM:PixelPerfect() * profileOptions.borderSize
+	local borderSize = profileOptions.borderSize
 	local texturePath = LSM:Fetch("statusbar", options.texture) or "Interface\\TargetingFrame\\UI-StatusBar"
 	local borderColor = options.borderColor
 	local backgroundColor = bgColor or options.bgColor
@@ -181,22 +189,30 @@ local function UpdateStatusBarLook(fillColor, bgColor)
 
 	castBar:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = borderSize })
 	castBar:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b, borderColor.a)
+	for _, region in ipairs({ castBar:GetRegions() }) do
+		if region:IsObjectType("Texture") then
+			region:SetTexelSnappingBias(0)
+			region:SetSnapToPixelGrid(false)
+		end
+	end
 
 	castBar.Background:ClearAllPoints()
 	castBar.Background:SetPoint("TOPLEFT", castBar, "TOPLEFT", borderSize, -borderSize)
 	castBar.Background:SetPoint("BOTTOMRIGHT", castBar, "BOTTOMRIGHT", -borderSize, borderSize)
 	castBar.Background:SetColorTexture(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a)
+	castBar.Background:SetTexelSnappingBias(0)
+	castBar.Background:SetSnapToPixelGrid(false)
 
 	local iconOptions = options.icon
 	local outerWidth = max(castBar:GetWidth(), 1)
 	local outerHeight = max(castBar:GetHeight(), 1)
 	local innerWidth = max(outerWidth - borderSize * 2, 1)
-	local spacing = iconOptions.enable and min(SCM:PixelPerfect(ICON_SPACING), max(innerWidth - 1, 0)) or 0
+	local spacing = iconOptions.enable and min(ICON_SPACING, max(innerWidth - 1, 0)) or 0
 	local iconSize = 0
 	local iconZoom = min(iconOptions.zoom, 0.49)
 
 	if iconOptions.enable then
-		local configuredIconSize = iconOptions.matchBarHeight and outerHeight or SCM:PixelPerfect(max(iconOptions.size, 1))
+		local configuredIconSize = iconOptions.matchBarHeight and outerHeight or max(iconOptions.size, 1)
 		iconSize = min(configuredIconSize, outerHeight, max(outerWidth - borderSize - spacing - 1, 0))
 	end
 
@@ -206,8 +222,16 @@ local function UpdateStatusBarLook(fillColor, bgColor)
 	castBar.IconFrame.Icon:SetPoint("TOPLEFT", castBar.IconFrame, "TOPLEFT", borderSize, -borderSize)
 	castBar.IconFrame.Icon:SetPoint("BOTTOMRIGHT", castBar.IconFrame, "BOTTOMRIGHT", -borderSize, borderSize)
 	castBar.IconFrame.Icon:SetTexCoord(iconZoom, 1 - iconZoom, iconZoom, 1 - iconZoom)
+	castBar.IconFrame.Icon:SetTexelSnappingBias(0)
+	castBar.IconFrame.Icon:SetSnapToPixelGrid(false)
 	castBar.IconFrame:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = borderSize })
 	castBar.IconFrame:SetBackdropBorderColor(borderColor.r, borderColor.g, borderColor.b, borderColor.a)
+	for _, region in ipairs({ castBar.IconFrame:GetRegions() }) do
+		if region:IsObjectType("Texture") then
+			region:SetTexelSnappingBias(0)
+			region:SetSnapToPixelGrid(false)
+		end
+	end
 
 	if iconOptions.enable and iconSize > 0 then
 		castBar.IconFrame:SetSize(iconSize, iconSize)
@@ -227,6 +251,8 @@ local function UpdateStatusBarLook(fillColor, bgColor)
 
 	UpdateIconTexture(castBar.CurrentSpellTexture)
 	castBar.Status:SetStatusBarTexture(texturePath)
+	castBar.Status:GetStatusBarTexture():SetTexelSnappingBias(0)
+	castBar.Status:GetStatusBarTexture():SetSnapToPixelGrid(false)
 	castBar.Status:SetStatusBarColor(foregroundColor.r or 1, foregroundColor.g or 1, foregroundColor.b or 1, foregroundColor.a or 1)
 
 	local fontPath = LSM:Fetch("font", options.font) or STANDARD_TEXT_FONT
@@ -259,15 +285,21 @@ local function UpdateStatusBarLook(fillColor, bgColor)
 
 		if sparkOptions.texture:find("\\") then
 			castBar.Spark:SetTexture(sparkOptions.texture)
+			castBar.Spark:SetTexelSnappingBias(0)
+			castBar.Spark:SetSnapToPixelGrid(false)
 		else
 			local texturePath = LSM:Fetch("statusbar", sparkOptions.texture)
 			if texturePath then
 				castBar.Spark:SetTexture(texturePath)
+				castBar.Spark:SetTexelSnappingBias(0)
+				castBar.Spark:SetSnapToPixelGrid(false)
 			end
 		end
 
 		local color = sparkOptions.color
 		castBar.Spark:SetVertexColor(color.r, color.g, color.b, color.a)
+		castBar.Spark:SetTexelSnappingBias(0)
+		castBar.Spark:SetSnapToPixelGrid(false)
 
 		castBar.Spark:Show()
 	elseif castBar.Spark:IsShown() then
@@ -290,6 +322,8 @@ local function UpdateStatusBarLook(fillColor, bgColor)
 
 			tick:ClearAllPoints()
 			tick:SetColorTexture(color.r, color.g, color.b, color.a)
+			tick:SetTexelSnappingBias(0)
+			tick:SetSnapToPixelGrid(false)
 			tick:SetSize(tickWidth, statusHeight)
 			tick:SetPoint("CENTER", castBar.Status, "LEFT", statusWidth * i / castBar.CurrentChannelTickCount, 0)
 			tick:Show()
@@ -419,6 +453,8 @@ local function HandleCast(durationObject, castType, empoweredStages, isChannelSt
 
 				tick:ClearAllPoints()
 				tick:SetColorTexture(color.r, color.g, color.b, color.a)
+				tick:SetTexelSnappingBias(0)
+				tick:SetSnapToPixelGrid(false)
 				tick:SetSize(tickWidth, statusHeight)
 				tick:SetPoint("CENTER", castBar.Status, "LEFT", statusWidth * i / tickCount, 0)
 				tick:Show()
@@ -536,6 +572,8 @@ function SCM:CreateCastBar()
 	castBar.TickLines = {}
 
 	castBar.Background = castBar:CreateTexture(nil, "BACKGROUND")
+	castBar.Background:SetTexelSnappingBias(0)
+	castBar.Background:SetSnapToPixelGrid(false)
 
 	castBar.Status = CreateFrame("StatusBar", nil, castBar)
 	castBar.Status:SetFrameLevel(castBar:GetFrameLevel() + 1)
@@ -545,11 +583,15 @@ function SCM:CreateCastBar()
 	castBar.IconFrame = CreateFrame("Frame", nil, castBar, "BackdropTemplate")
 	castBar.IconFrame:SetFrameLevel(castBar:GetFrameLevel() + 2)
 	castBar.IconFrame.Icon = castBar.IconFrame:CreateTexture(nil, "ARTWORK")
+	castBar.IconFrame.Icon:SetTexelSnappingBias(0)
+	castBar.IconFrame.Icon:SetSnapToPixelGrid(false)
 
 	castBar.SpellNameText = castBar.Status:CreateFontString(nil, "OVERLAY")
 	castBar.CastDurationText = castBar.Status:CreateFontString(nil, "OVERLAY")
 
 	castBar.Spark = castBar:CreateTexture(nil, "OVERLAY", nil, 2)
+	castBar.Spark:SetTexelSnappingBias(0)
+	castBar.Spark:SetSnapToPixelGrid(false)
 
 	self.CastBar = castBar
 	EventRegistry:RegisterCallback(ANCHOR_PROXY_SIZE_CHANGED_EVENT, function(_, proxyGroup, proxy, _width, _height, _selectedAnchorRef, isActiveProxy)

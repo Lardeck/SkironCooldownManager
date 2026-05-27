@@ -161,7 +161,9 @@ local function OnHide(child)
 		if child.SCMBuffBar then
 			if child.SCMFakeAuraInstanceID and child.SCMFixedDuration and GetTime() < child.SCMFixedDuration then
 				return
-			elseif child.SCMAuraInstanceID and not child.SCMFakeAuraInstanceID and C_UnitAuras.GetAuraDataByAuraInstanceID(child.SCMAuraDataUnit, child.SCMAuraInstanceID) then
+			elseif child.SCMAuraInstanceID and not child.SCMFakeAuraInstanceID 
+			and C_UnitAuras.GetAuraDataByAuraInstanceID(child.SCMAuraDataUnit, child.SCMAuraInstanceID)
+			and C_UnitAuras.IsAuraFilteredOutByInstanceID(child.SCMAuraDataUnit, child.SCMAuraInstanceID, "PLAYER") then
 				return
 			end
 

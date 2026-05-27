@@ -55,7 +55,8 @@ local function OnBuffCooldownEnd(self)
 	end
 
 	if parent.SCMAuraInstanceID and not parent.SCMCheckCooldownFrame then
-		if not C_UnitAuras.GetAuraDataByAuraInstanceID(parent.SCMAuraDataUnit, parent.SCMAuraInstanceID) then
+		if not C_UnitAuras.GetAuraDataByAuraInstanceID(parent.SCMAuraDataUnit, parent.SCMAuraInstanceID) and
+		C_UnitAuras.IsAuraFilteredOutByInstanceID(parent.SCMAuraDataUnit, parent.SCMAuraInstanceID, "PLAYER") then
 			parent.SCMAuraInstanceID = nil
 			parent.SCMAuraDataUnit = nil
 		else

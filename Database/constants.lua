@@ -315,6 +315,12 @@ Constants.SpecSecondaryPower = {
 		segmentCount = 3,
 		registerUnitAura = true,
 	},
+	[257] = {
+		resourceKind = "spellCharges",
+		spellID = 2050,
+		powerToken = "SPELL_CHARGES_SERENITY",
+		segmentCount = 2,
+	},
 	[263] = {
 		resourceKind = "maelstromWeapon",
 		powerToken = "MAELSTROM_WEAPON",
@@ -411,6 +417,7 @@ Constants.ResourceBarPowerTypes = {
 	{ token = "TIP_OF_THE_SPEAR", label = "Tip of the Spear" },
 	{ token = "ICICLES", label = "Icicles" },
 	{ token = "SPELL_CHARGES_FIRE_BLAST", label = "Fire Blast Charges" },
+	{ token = "SPELL_CHARGES_SERENITY", label = "Serenity Charges" },
 }
 
 Constants.DruidPrimaryPowerTypes = {
@@ -449,6 +456,7 @@ Constants.SegmentTicksByPowerToken = {
 	SOUL_SHARDS = true,
 	SOUL_FRAGMENTS_VENGEANCE = true,
 	SPELL_CHARGES_FIRE_BLAST = true,
+	SPELL_CHARGES_SERENITY = true,
 	TIP_OF_THE_SPEAR = true,
 }
 

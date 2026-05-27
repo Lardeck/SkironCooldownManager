@@ -112,6 +112,8 @@ function Utils.ApplyCraftQuality(craftQuality, itemID)
 	craftQuality:SetPoint("TOPLEFT", craftQuality:GetParent().Icon, "TOPLEFT", -10, 10)
 	craftQuality:SetSize(34, 34)
 	craftQuality:SetAtlas(qualityAtlas, false)
+	craftQuality:SetTexelSnappingBias(0)
+	craftQuality:SetSnapToPixelGrid(false)
 	craftQuality:Show()
 	return true
 end

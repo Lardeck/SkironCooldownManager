@@ -8,7 +8,6 @@ local function OnResourceBarWidthChanged(self)
 end
 
 function SCM:UpdateResourceBarWidth(maxGroupWidth)
-	maxGroupWidth = self:PixelPerfect(maxGroupWidth)
 	for _, resourceBarName in ipairs(SCM.db.profile.options.resourceBars) do
 		local resourceBar = _G[resourceBarName]
 		if resourceBar and resourceBar:IsShown() then
@@ -27,7 +26,7 @@ end
 function SCM:UpdateUUFValues(options, maxGroupWidth, rowConfig)
 	local offset = min((maxGroupWidth - 150), 0)
 	local mainAnchor = SCM:GetAnchor(1)
-	local height = floor(SCM:PixelPerfect(rowConfig[1].iconHeight or rowConfig[1].size) + 0.5) + options.anchorsHeightOffset
+	local height = floor((rowConfig[1].iconHeight or rowConfig[1].size) + 0.5) + options.anchorsHeightOffset
 
 	if UUF_Player then
 		if options.anchorUUF and options.anchorUUFRoles[(select(5, Utils.GetSpec()))] then
@@ -50,7 +49,16 @@ function SCM:UpdateUUFValues(options, maxGroupWidth, rowConfig)
 				UUF_Player:SetHeight(height)
 				UUF_Player_HealthBar:SetHeight(height - 2)
 				UUF_Player_HealthBackground:SetHeight(height - 2)
-				UUF_Player_HealAbsorbBar:SetHeight(height - 2)
+
+				if UUF_Player.HealthPrediction then
+					if UUF_Player.HealthPrediction.healAbsorb then
+						UUF_Player.HealthPrediction.healAbsorb:SetHeight(height - 2)
+					end
+
+					if UUF_Player.HealthPrediction.damageAbsorb then
+						UUF_Player.HealthPrediction.damageAbsorb:SetHeight(height - 2)
+					end
+				end
 			end
 
 			if not UUF_Player.SCMHook then
@@ -62,7 +70,16 @@ function SCM:UpdateUUFValues(options, maxGroupWidth, rowConfig)
 							self.SCMAnchor.SetHeight(self, self.SCMHeight)
 							self.SCMAnchor.SetHeight(UUF_Player_HealthBar, self.SCMHeight - 2)
 							self.SCMAnchor.SetHeight(UUF_Player_HealthBackground, self.SCMHeight - 2)
-							self.SCMAnchor.SetHeight(UUF_Player_HealAbsorbBar, self.SCMHeight - 2)
+
+							if self.HealthPrediction then
+								if self.HealthPrediction.healAbsorb then
+									self.SCMAnchor.SetHeight(self.HealthPrediction.healAbsorb, self.SCMHeight - 2)
+								end
+
+								if self.HealthPrediction.damageAbsorb then
+									self.SCMAnchor.SetHeight(self.HealthPrediction.damageAbsorb, self.SCMHeight - 2)
+								end
+							end
 						end
 					end
 				end)
@@ -72,7 +89,16 @@ function SCM:UpdateUUFValues(options, maxGroupWidth, rowConfig)
 						self.SCMAnchor.SetHeight(self, self.SCMHeight)
 						self.SCMAnchor.SetHeight(UUF_Player_HealthBar, self.SCMHeight - 2)
 						self.SCMAnchor.SetHeight(UUF_Player_HealthBackground, self.SCMHeight - 2)
-						self.SCMAnchor.SetHeight(UUF_Player_HealAbsorbBar, self.SCMHeight - 2)
+
+						if self.HealthPrediction then
+							if self.HealthPrediction.healAbsorb then
+								self.SCMAnchor.SetHeight(self.HealthPrediction.healAbsorb, self.SCMHeight - 2)
+							end
+
+							if self.HealthPrediction.damageAbsorb then
+								self.SCMAnchor.SetHeight(self.HealthPrediction.damageAbsorb, self.SCMHeight - 2)
+							end
+						end
 					end
 				end)
 			end
@@ -82,7 +108,16 @@ function SCM:UpdateUUFValues(options, maxGroupWidth, rowConfig)
 			UUF_Player.SCMAnchor.SetHeight(UUF_Player, UUF_Player.SCMOriginalHeight)
 			UUF_Player.SCMAnchor.SetHeight(UUF_Player_HealthBar, UUF_Player.SCMOriginalHeight - 2)
 			UUF_Player.SCMAnchor.SetHeight(UUF_Player_HealthBackground, UUF_Player.SCMOriginalHeight - 2)
-			UUF_Player.SCMAnchor.SetHeight(UUF_Player_HealAbsorbBar, UUF_Player.SCMOriginalHeight - 2)
+
+			if UUF_Player.HealthPrediction then
+				if UUF_Player.HealthPrediction.healAbsorb then
+					self.SCMAnchor.SetHeight(UUF_Player.HealthPrediction.healAbsorb, UUF_Player.SCMOriginalHeight - 2)
+				end
+
+				if UUF_Player.HealthPrediction.damageAbsorb then
+					self.SCMAnchor.SetHeight(UUF_Player.HealthPrediction.damageAbsorb, UUF_Player.SCMOriginalHeight - 2)
+				end
+			end
 
 			UUF_Player.SCMCustomAnchor = nil
 			UUF_Player.SCMOffset = nil

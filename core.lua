@@ -50,8 +50,8 @@ local function OnSpellAlertManagerShowAlert(_, child)
 	local options = SCM.db.profile.options
 	if not child.SCMConfig or not options.useCustomGlow or child.SCMActiveGlow then
 		if child.SCMWidth and child.SCMHeight then
-			local width = SCM:PixelPerfect(child.SCMWidth)
-			local height = SCM:PixelPerfect(child.SCMHeight)
+			local width = child.SCMWidth
+			local height = child.SCMHeight
 
 			local alert = child.SpellActivationAlert
 			alert:SetSize(width * 1.4, height * 1.4)
@@ -119,7 +119,6 @@ end
 
 function SCM:PLAYER_ENTERING_WORLD(isInitialLogin, isReload)
 	if isInitialLogin or isReload then
-		--SCM.Cache.cachedViewerScale = SCM:PixelPerfect()
 		SCM:UpdateCooldownInfo(true)
 		SCM:UpdateDB()
 

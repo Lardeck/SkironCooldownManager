@@ -123,6 +123,12 @@ local function UpdateResourceBarBorder(bar, barOptions)
 
 	borderFrame:SetBackdrop(backdropInfo)
 	borderFrame:ApplyBackdrop()
+	for _, region in ipairs({ borderFrame:GetRegions() }) do
+		if region:IsObjectType("Texture") then
+			region:SetTexelSnappingBias(0)
+			region:SetSnapToPixelGrid(false)
+		end
+	end
 
 	local color = barOptions.backdropColor or {}
 	local alpha = color.a == nil and 1 or color.a
@@ -150,6 +156,8 @@ local function UpdateResourceBarBackgroundTexture(bar, barOptions)
 	backgroundTexture:SetVertexColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a)
 
 	backgroundTexture:SetTexture(LSM:Fetch("statusbar", backgroundTextureName))
+	backgroundTexture:SetTexelSnappingBias(0)
+	backgroundTexture:SetSnapToPixelGrid(false)
 	SetRegionPoint(backgroundTexture, bar)
 	backgroundTexture:Show()
 end
@@ -411,6 +419,8 @@ local function UpdateRechargeSegment(bar)
 	local texturePath = bar.SCMTexturePath or LSM:Fetch("statusbar", bar.barOptions.texture)
 	local r, g, b = GetPowerColor(bar.powerToken, bar.powerType)
 	bar.RechargeSegment:SetStatusBarTexture(texturePath)
+	bar.RechargeSegment:GetStatusBarTexture():SetTexelSnappingBias(0)
+	bar.RechargeSegment:GetStatusBarTexture():SetSnapToPixelGrid(false)
 	bar.RechargeSegment:SetStatusBarColor(r, g, b)
 end
 
@@ -456,7 +466,7 @@ local function UpdateSpellChargeRecharge(bar, chargeInfo)
 		bar.RechargeSegment = segment
 	end
 
-	segment:SetFrameLevel(bar:GetFrameLevel() + 1)
+	segment:SetFrameLevel(bar:GetFrameLevel())
 	segment:ClearAllPoints()
 	segment:SetPoint("LEFT", statusBarTexture, "RIGHT", 0, 0)
 	segment:SetWidth(segmentWidth)
@@ -481,8 +491,8 @@ local function ApplyResourceBarSparkOptions(bar, sparkAnchor, optionsChanged)
 	local spark = bar.Spark
 	local sparkOptions = bar.barOptions and bar.barOptions.spark
 	local color = sparkOptions.color
-	local width = SCM:PixelPerfect(sparkOptions.width)
-	local height = SCM:PixelPerfect(sparkOptions.height)
+	local width = sparkOptions.width
+	local height = sparkOptions.height
 	local blendMode = sparkOptions.blendMode
 
 	local texture = sparkOptions.texture
@@ -507,8 +517,8 @@ local function ApplyResourceBarSparkOptions(bar, sparkAnchor, optionsChanged)
 	spark:SetTexture(texturePath)
 	spark:SetVertexColor(color.r, color.g, color.g, color.a)
 	spark:SetAlpha(1)
-	spark:SetSnapToPixelGrid(false)
 	spark:SetTexelSnappingBias(0)
+	spark:SetSnapToPixelGrid(false)
 	spark:ClearAllPoints()
 	PixelUtil.SetPoint(spark, "LEFT", sparkAnchor, "RIGHT", sparkOptions.xOffset, sparkOptions.yOffset)
 end
@@ -608,6 +618,8 @@ local function CreateTicks(bar, tickCount, tickColor)
 	for tickIndex = #bar.SegmentTicks + 1, tickCount do
 		local tick = bar.SegmentTicks[tickIndex] or tickFrame:CreateTexture(nil, "OVERLAY")
 		tick:SetColorTexture(tickColor.r, tickColor.g, tickColor.b, tickColor.a)
+		tick:SetTexelSnappingBias(0)
+		tick:SetSnapToPixelGrid(false)
 		bar.SegmentTicks[tickIndex] = tick
 	end
 
@@ -648,6 +660,8 @@ local function UpdateTicks(bar, maxValue)
 		local tick = tickTextures[tickIndex]
 		tick:ClearAllPoints()
 		tick:SetColorTexture(tickColor.r, tickColor.g, tickColor.b, tickColor.a)
+		tick:SetTexelSnappingBias(0)
+		tick:SetSnapToPixelGrid(false)
 		tick:SetPoint("LEFT", tickIndex * offset, 0)
 		tick:SetWidth(tickWidth)
 		tick:SetHeight(barHeight)
@@ -732,6 +746,8 @@ local function CreateSegments(bar, segmentCount)
 		local segmentBar = bar.SegmentFillBars[segmentIndex] or CreateFrame("StatusBar", nil, bar)
 		segmentBar:SetMinMaxValues(0, 1)
 		segmentBar:SetStatusBarTexture(texturePath)
+		segmentBar:GetStatusBarTexture():SetTexelSnappingBias(0)
+		segmentBar:GetStatusBarTexture():SetSnapToPixelGrid(false)
 		segmentBar:SetFrameLevel(2)
 		bar.SegmentFillBars[segmentIndex] = segmentBar
 	end
@@ -820,6 +836,8 @@ local function UpdateSegments(bar, maxValue, currentValue, resourceSegmentValues
 		local segmentBar = segmentBars[segmentIndex]
 		segmentBar:ClearAllPoints()
 		segmentBar:SetStatusBarTexture(texturePath)
+		segmentBar:GetStatusBarTexture():SetTexelSnappingBias(0)
+		segmentBar:GetStatusBarTexture():SetSnapToPixelGrid(false)
 		segmentBar:SetPoint("LEFT", (segmentIndex - 1) * segmentWidth, 0)
 		segmentBar:SetWidth(segmentWidth)
 		segmentBar:SetHeight(segmentHeight)
@@ -862,17 +880,23 @@ local function ApplyBarAppearance(bar, barOptions)
 		local texturePath = LSM:Fetch("statusbar", barOptions.texture)
 		bar.SCMTexturePath = texturePath
 		bar:SetStatusBarTexture(texturePath)
+		bar:GetStatusBarTexture():SetTexelSnappingBias(0)
+		bar:GetStatusBarTexture():SetSnapToPixelGrid(false)
 		bar:GetStatusBarTexture():Show()
 
 		if bar.SegmentFillBars then
 			for _, segmentBar in ipairs(bar.SegmentFillBars) do
 				segmentBar:SetStatusBarTexture(texturePath)
+				segmentBar:GetStatusBarTexture():SetTexelSnappingBias(0)
+				segmentBar:GetStatusBarTexture():SetSnapToPixelGrid(false)
 				segmentBar:GetStatusBarTexture():Show()
 			end
 		end
 		UpdateRechargeSegment(bar)
 
 		local statusBarTexture = bar:GetStatusBarTexture()
+		statusBarTexture:SetTexelSnappingBias(0)
+		statusBarTexture:SetSnapToPixelGrid(false)
 		SetRegionPoint(statusBarTexture, bar)
 		UpdateResourceBarBackgroundTexture(bar, barOptions)
 	else
@@ -947,6 +971,8 @@ local function InitializeBarSkin(bar)
 
 	if not bar.Spark then
 		bar.Spark = bar.SparkFrame:CreateTexture(nil, "OVERLAY", nil, 2)
+		bar.Spark:SetTexelSnappingBias(0)
+		bar.Spark:SetSnapToPixelGrid(false)
 		bar.Spark:Hide()
 	end
 
@@ -1067,7 +1093,7 @@ end
 
 local function SetBarHeight(bar, height)
 	local previousHeight = bar:GetHeight() or 0
-	PixelUtil.SetHeight(bar, height, height)
+	bar:SetHeight(height)
 
 	return previousHeight ~= (bar:GetHeight() or 0)
 end
@@ -1562,9 +1588,9 @@ function SCMResourceBarControllerMixin:UpdateBarLayout()
 	end
 
 	if primaryShown and secondaryShown then
-		PixelUtil.SetHeight(self, primaryHeight + secondaryHeight + spacing)
+		self:SetHeight(primaryHeight + secondaryHeight + spacing)
 	elseif primaryShown or secondaryShown then
-		PixelUtil.SetHeight(self, primaryShown and primaryHeight or secondaryHeight)
+		self:SetHeight(primaryShown and primaryHeight or secondaryHeight)
 	else
 		self:SetHeight(0)
 	end
