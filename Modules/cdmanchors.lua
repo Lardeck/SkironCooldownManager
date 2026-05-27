@@ -243,22 +243,22 @@ end
 
 local function OnChildSetSize(child)
 	local anchorFrame = child.SCMAnchorFrame
-	if anchorFrame and child.SCMHeight and child.SCMWidth then
-		anchorFrame.SetSize(child, child.SCMWidth, child.SCMHeight)
+	if anchorFrame then
+		anchorFrame.SetSize(child, SCM:PixelPerfect(child.SCMWidth), SCM:PixelPerfect(child.SCMHeight))
 	end
 end
 
 local function OnChildSetWidth(child)
 	local anchorFrame = child.SCMAnchorFrame
-	if anchorFrame and child.SCMWidth then
-		anchorFrame.SetWidth(child, child.SCMWidth)
+	if anchorFrame then
+		anchorFrame.SetWidth(child, SCM:PixelPerfect(child.SCMWidth))
 	end
 end
 
 local function OnChildSetHeight(child)
 	local anchorFrame = child.SCMAnchorFrame
-	if anchorFrame and child.SCMHeight then
-		anchorFrame.SetHeight(child, child.SCMHeight)
+	if anchorFrame then
+		anchorFrame.SetHeight(child, SCM:PixelPerfect(child.SCMHeight))
 	end
 end
 
@@ -280,18 +280,18 @@ function SCM:UpdateManagedAnchorChild(child, groupAnchor, startPoint, offsetX, o
 	child:SetScale(Cache.cachedViewerScale or 1)
 
 	if child.SCMBuffBar then
-		child:SetWidth(width)
-		child:SetHeight(height)
+		child:SetWidth(self:PixelPerfect(width))
+		child:SetHeight(self:PixelPerfect(height))
 
 		if child.Icon then
-			child.Icon:SetSize(height, height)
+			child.Icon:SetSize(self:PixelPerfect(height), self:PixelPerfect(height))
 		end
 
 		if child.Bar and child.Bar.Pip then
-			child.Bar.Pip:SetHeight(height * 1.4)
+			child.Bar.Pip:SetHeight(self:PixelPerfect(height) * 1.4)
 		end
 	else
-		child:SetSize(width, height)
+		child:SetSize(self:PixelPerfect(width), self:PixelPerfect(height))
 	end
 
 	if not child.SCMSizeHook and not child.SCMCustom then
@@ -454,7 +454,7 @@ function SCM:GetManagedAnchorChildAnchor(group, groupAnchor, point, anchor, rela
 	state.currentProxyRequired = nil
 	state.currentProxyActive = true
 
-	proxy:SetSize(max(frameWidth, 1), max(frameHeight, 1))
+	proxy:SetSize(SCM:PixelPerfect(max(frameWidth, 1)), SCM:PixelPerfect(max(frameHeight, 1)))
 	proxy:ClearAllPoints()
 	proxy:SetPoint(self:GetAnchorPivot(point, growDir), target, relativePoint, GetAnchorPointOffsets(point, growDir, offsetWidth, xOffset, yOffset, anchorOffsetY))
 	proxy:Show()
@@ -473,8 +473,6 @@ function SCM:GetAnchor(group, point, anchor, relativePoint, xOffset, yOffset, gr
 
 		anchorFrame.debugTexture:SetAllPoints()
 		anchorFrame.debugTexture:SetColorTexture(8 / 255, 8 / 255, 8 / 255, 0.4)
-		anchorFrame.debugTexture:SetTexelSnappingBias(0)
-		anchorFrame.debugTexture:SetSnapToPixelGrid(false)
 		anchorFrame.debugTexture:SetShown(self.OptionsFrame ~= nil)
 
 		anchorFrame.debugText = anchorFrame:CreateFontString(nil, "OVERLAY", "Permok_Expressway_Large")
@@ -520,7 +518,7 @@ function SCM:GetAnchor(group, point, anchor, relativePoint, xOffset, yOffset, gr
 	local pivot = self:GetAnchorPivot(point, growDir)
 	local appliedXOffset, appliedYOffset = GetAnchorPointOffsets(point, growDir, offsetWidth, xOffset, yOffset, anchorOffsetY)
 
-	anchorFrame:SetSize(frameWidth, frameHeight)
+	anchorFrame:SetSize(SCM:PixelPerfect(frameWidth), SCM:PixelPerfect(frameHeight))
 	anchorFrame:SetScale(Cache.cachedViewerScale or 1)
 	anchorFrame:ClearAllPoints()
 	anchorFrame:SetPoint(pivot, target, relativePoint, appliedXOffset, appliedYOffset)

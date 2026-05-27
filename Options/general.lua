@@ -459,15 +459,6 @@ local function SelectGlobalSettingsTab(tabWidget, group, options)
 		end)
 		activeSwipeSettings:AddChild(activeSwipeColor)
 
-		local reverseActiveSwipe = AceGUI:Create("CheckBox")
-		reverseActiveSwipe:SetRelativeWidth(0.5)
-		reverseActiveSwipe:SetLabel("Reverse Active Swipe")
-		reverseActiveSwipe:SetValue(options.reverseActiveSwipe)
-		reverseActiveSwipe:SetCallback("OnValueChanged", function(_, _, value)
-			options.reverseActiveSwipe = value
-		end)
-		activeSwipeSettings:AddChild(reverseActiveSwipe)
-
 		local disableRegularIconActiveSwipe = AceGUI:Create("CheckBox")
 		disableRegularIconActiveSwipe:SetRelativeWidth(0.5)
 		disableRegularIconActiveSwipe:SetLabel("Disable On Regular Icons")
@@ -515,6 +506,16 @@ local function SelectGlobalSettingsTab(tabWidget, group, options)
 			SCM:ApplyAllCDManagerConfigs()
 		end)
 		iconSettings:AddChild(keepIconSquareRatio)
+
+		local experimentalPixelSettings  = AceGUI:Create("CheckBox")
+		experimentalPixelSettings:SetRelativeWidth(0.25)
+		experimentalPixelSettings:SetLabel("Experimental Skinning")
+		experimentalPixelSettings:SetValue(options.experimentalPixelSettings)
+		experimentalPixelSettings:SetCallback("OnValueChanged", function(_, _, value)
+			options.experimentalPixelSettings = value
+			SCM:ApplyAllCDManagerConfigs()
+		end)
+		iconSettings:AddChild(experimentalPixelSettings)
 
 		local borderSettings = AceGUI:Create("InlineGroup")
 		borderSettings:SetLayout("flow")

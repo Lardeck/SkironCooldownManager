@@ -203,6 +203,28 @@ local function UpdateAnchorLinks(config)
 	return anchorLinks
 end
 
+-- [SCM-fork] Keep buff bar width synced to its anchor frame.
+-- The anchor (e.g. a resource bar) is often sized AFTER the buff bar first lays
+-- out, so the initial GetWidth() is stale. Mirror the cast bar approach: react to
+-- the anchor frame OnSizeChanged and re-run a debounced, buff-bar-scoped relayout.
+local buffBarWidthRefreshPending = {}
+function SCM:RefreshBuffBarWidth(group)
+	if not Utils.IsBuffBarGroup(group) then
+		return
+	end
+	if buffBarWidthRefreshPending[group] then
+		return
+	end
+	buffBarWidthRefreshPending[group] = true
+	C_Timer.After(0.05, function()
+		buffBarWidthRefreshPending[group] = nil
+		if C_CVar.GetCVar("cooldownViewerEnabled") ~= "1" or not SCM.currentConfig then
+			return
+		end
+		SCM:ApplyAnchorGroupCDManagerConfig(group, false, UPDATE_SCOPE.BUFF_BAR)
+	end)
+end
+
 local function LayoutAnchorGroup(group, visibleChildren, anchorConfig, options, changedGroups, resetSize, checkDuplicates, allowLayoutSkip)
 	Cache.cachedVisitedAnchorGroups[group] = true
 
@@ -227,7 +249,31 @@ local function LayoutAnchorGroup(group, visibleChildren, anchorConfig, options, 
 	if anchorConfig.matchAnchorWidth and Utils.IsBuffBarGroup(group) then
 		local anchorFrame = Utils.GetAnchorFrame(anchor)
 		if anchorFrame then
-			matchedAnchorWidth = max(anchorFrame:GetWidth(), 1)
+			-- [SCM-fork] anchorFrame:GetWidth() is in UI-coordinate units (already
+			-- pixel-scaled), but matchedAnchorWidth feeds rowIconWidth which is in
+			-- config units and gets PixelPerfect()-multiplied again downstream
+			-- (UpdateManagedAnchorChild -> SetWidth). Divide by the multiplier here so
+			-- the final width equals the anchor width exactly (no double-scaling).
+			matchedAnchorWidth = max(anchorFrame:GetWidth() / SCM:GetPixelPerfectMultiplier(), 1)
+
+			-- [SCM-fork] Re-sync this buff bar when the anchor frame resizes.
+			-- Track every group anchored to this frame so one resize refreshes them all.
+			if anchorFrame.HookScript and not anchorFrame.SCMProxyGroup then
+				anchorFrame.SCMBuffBarWidthGroups = anchorFrame.SCMBuffBarWidthGroups or {}
+				anchorFrame.SCMBuffBarWidthGroups[group] = true
+				if not anchorFrame.SCMBuffBarWidthHook then
+					anchorFrame.SCMBuffBarWidthHook = true
+					anchorFrame:HookScript("OnSizeChanged", function(changedAnchor)
+						local groups = changedAnchor.SCMBuffBarWidthGroups
+						if not groups then
+							return
+						end
+						for trackedGroup in pairs(groups) do
+							SCM:RefreshBuffBarWidth(trackedGroup)
+						end
+					end)
+				end
+			end
 		end
 	end
 	local rows = state.rows
@@ -515,7 +561,7 @@ local function LayoutAnchorGroup(group, visibleChildren, anchorConfig, options, 
 	end
 
 	if not InCombatLockdown() and groupAnchor then
-		groupAnchor:SetSize(effectiveWidth, effectiveHeight)
+		groupAnchor:SetSize(SCM:PixelPerfect(effectiveWidth), SCM:PixelPerfect(effectiveHeight))
 		state.appliedWidth = effectiveWidth
 		state.appliedHeight = effectiveHeight
 		state.appliedAnchorOffsetY = anchorOffsetY
