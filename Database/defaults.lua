@@ -125,6 +125,7 @@ SCM.DefaultDB = {
 			borderSize = 1,
 			anchorUUF = false,
 			anchorElvUI = false,
+			anchorLayoutCallbacks = {},
 			temporaryPadding = 0,
 			adjustHeight = true,
 			anchorsHeightOffset = 0,

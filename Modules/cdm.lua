@@ -542,6 +542,8 @@ local function LayoutAnchorGroup(group, visibleChildren, anchorConfig, options, 
 
 			SCM:UpdateUUFValues(options, effectiveWidth, rowConfig)
 		end
+
+		SCM:NotifyAnchorLayoutCallbacks(group, groupAnchor, effectiveWidth, effectiveHeight, rowConfig, options)
 	end
 
 	if group == 1 then

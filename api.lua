@@ -51,6 +51,25 @@ function SCMAPI.RegisterCustomAnchor(frame, options, override)
 	end
 end
 
+-- callback(group, anchorFrame, effectiveWidth, effectiveHeight, rowConfig, options, enabled)
+-- callbackOptions: { displayName = string, defaultEnabled = boolean, group = number, groups = table, roles = table }
+function SCMAPI.RegisterAnchorLayoutCallback(addOnName, callback, callbackOptions, override)
+	if type(callbackOptions) == "boolean" then
+		override = callbackOptions
+		callbackOptions = nil
+	end
+
+	return SCM:RegisterAnchorLayoutCallback(addOnName, callback, callbackOptions, override)
+end
+
+function SCMAPI.UnregisterAnchorLayoutCallback(addOnName)
+	return SCM:UnregisterAnchorLayoutCallback(addOnName)
+end
+
+function SCMAPI.IsAnchorLayoutCallbackEnabled(addOnName)
+	return SCM:IsAnchorLayoutCallbackEnabled(addOnName)
+end
+
 function SCMAPI.RegisterCustomEntry(customEntry)
 	tinsert(SCM.CustomEntries, customEntry)
 end

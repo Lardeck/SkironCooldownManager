@@ -1,7 +1,88 @@
 local SCM = select(2, ...)
 local AceGUI = LibStub("AceGUI-3.0")
 
-SCM.MainTabs.Temporary = { value = "Temporary", text = "Temporary", order = 8, subgroups = {} }
+SCM.MainTabs.Temporary = { value = "Temporary", text = "Integrations", order = 8, subgroups = {} }
+
+local function AddAnchorLayoutCallbackSettings(parent)
+	local anchorLayoutSettings = AceGUI:Create("InlineGroup")
+	anchorLayoutSettings:SetLayout("flow")
+	anchorLayoutSettings:SetFullWidth(true)
+	anchorLayoutSettings:SetTitle("Public Anchor Integrations")
+	parent:AddChild(anchorLayoutSettings)
+
+	local listContainer = AceGUI:Create("SimpleGroup")
+	listContainer:SetLayout("flow")
+	listContainer:SetFullWidth(true)
+
+	local function RefreshList()
+		listContainer:ReleaseChildren()
+
+		local callbacks, callbackOrder = SCM:GetAnchorLayoutCallbacks()
+		if not callbackOrder or #callbackOrder == 0 then
+			local emptyLabel = AceGUI:Create("Label")
+			emptyLabel:SetRelativeWidth(1)
+			emptyLabel:SetText("No public anchor integrations are registered.")
+			listContainer:AddChild(emptyLabel)
+		else
+			for _, addOnName in ipairs(callbackOrder) do
+				local callbackEntry = callbacks[addOnName]
+				if callbackEntry then
+					local row = AceGUI:Create("SimpleGroup")
+					row:SetLayout("flow")
+					row:SetFullWidth(true)
+					listContainer:AddChild(row)
+
+					local enabled = AceGUI:Create("CheckBox")
+					enabled:SetRelativeWidth(0.55)
+					enabled:SetLabel(callbackEntry.displayName or addOnName)
+					enabled:SetValue(SCM:IsAnchorLayoutCallbackEnabled(addOnName))
+					enabled:SetCallback("OnValueChanged", function(_, _, value)
+						SCM:SetAnchorLayoutCallbackEnabled(addOnName, value)
+						SCM:ApplyAllCDManagerConfigs()
+						RefreshList()
+					end)
+					row:AddChild(enabled)
+
+					local roles = SCM:GetAnchorLayoutCallbackRoles(addOnName)
+					if roles then
+						local roleDropdown = AceGUI:Create("Dropdown")
+						roleDropdown:SetRelativeWidth(0.3)
+						roleDropdown:SetLabel("Roles")
+						roleDropdown:SetList(SCM.Constants.Roles)
+						roleDropdown:SetMultiselect(true)
+						roleDropdown:SetCallback("OnValueChanged", function(_, _, key, value)
+							SCM:SetAnchorLayoutCallbackRoleEnabled(addOnName, key, value)
+							SCM:ApplyAllCDManagerConfigs()
+							RefreshList()
+						end)
+						for key, value in pairs(roles) do
+							roleDropdown:SetItemValue(key, value)
+						end
+						row:AddChild(roleDropdown)
+					end
+
+					local status = AceGUI:Create("Label")
+					status:SetRelativeWidth(roles and 0.1 or 0.4)
+					status:SetText(callbackEntry.lastError and "|cFFFF5555Error|r" or "|cFF55FF55Ready|r")
+					row:AddChild(status)
+				end
+			end
+		end
+
+		listContainer:DoLayout()
+		anchorLayoutSettings:DoLayout()
+		parent:DoLayout()
+	end
+
+	local refresh = AceGUI:Create("Button")
+	refresh:SetRelativeWidth(0.25)
+	refresh:SetText("Refresh")
+	refresh:SetCallback("OnClick", RefreshList)
+	anchorLayoutSettings:AddChild(refresh)
+	anchorLayoutSettings:AddChild(listContainer)
+
+	RefreshList()
+end
 
 local function Temporary(self, frame, group)
 	local options = SCM.db.profile.options
@@ -17,7 +98,7 @@ local function Temporary(self, frame, group)
 	label:SetHeight(24)
 	label:SetJustifyH("CENTER")
 	label:SetJustifyV("MIDDLE")
-	label:SetText("|TInterface\\common\\help-i:40:40:0:0|tSome options will be removed once a better alternative has been found/made.")
+	label:SetText("|TInterface\\common\\help-i:40:40:0:0|tIntegration options for unit frames and external anchor consumers.")
 	label:SetFontObject("Game12Font")
 	generalFrame:AddChild(label)
 
@@ -126,6 +207,8 @@ local function Temporary(self, frame, group)
 		SCM:ApplyAllCDManagerConfigs()
 	end)
 	uufSettings:AddChild(xOffset)
+
+	AddAnchorLayoutCallbackSettings(generalFrame)
 
 	local resourceBarSettings = AceGUI:Create("InlineGroup")
 	resourceBarSettings:SetLayout("flow")
