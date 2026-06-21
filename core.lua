@@ -444,6 +444,7 @@ function SCM:UpdateCooldownInfo(isFirstLoad)
 	local dataProvider = CooldownViewerSettings:GetDataProvider()
 	local displayData = dataProvider and dataProvider.displayData.cooldownInfoByID
 	for _, cooldownCategory in pairs(CooldownViewerSettingsDataProvider_GetCategories()) do
+		if cooldownCategory > 3 then return end -- TODO REMOVE, bad fix to make most of addon work on ptr
 		self.defaultCooldownViewerConfig[cooldownCategory] = {
 			spellIDs = {},
 			cooldownIDs = {},

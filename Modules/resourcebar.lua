@@ -1625,7 +1625,13 @@ function SCMResourceBarControllerMixin:UpdateBarLayout()
 
 	if primaryShown then
 		primaryHeightChanged = SetBarHeight(self.PrimaryBar, primaryHeight)
-		self.PrimaryBar:SetPoint("BOTTOM", self, "BOTTOM")
+		if (barOptions.point == "TOP" or barOptions.point == "TOPLEFT" or barOptions.point == "TOPRIGHT") then
+			self.PrimaryBar:SetPoint("TOP", self, "TOP")
+		elseif (barOptions.point == "LEFT" or barOptions.point == "CENTER" or barOptions.point == "RIGHT") then
+			self.PrimaryBar:SetPoint("CENTER", self, "CENTER")
+		else
+			self.PrimaryBar:SetPoint("BOTTOM", self, "BOTTOM")
+		end
 		self.PrimaryBar:SetFrameStrata(frameStrata)
 	end
 

@@ -167,6 +167,12 @@ local function ApplyCooldownSwipe(cooldownFrame, options)
 	else
 		cooldownFrame:SetSwipeColor(0, 0, 0, 0.7)
 	end
+	if options.alwaysShowSwipe then
+		cooldownFrame:SetDrawSwipe(true)
+	end
+	if options.removeDrawEdge then
+		cooldownFrame:SetDrawEdge(false)
+	end
 end
 
 local function OnSetCooldown(self)

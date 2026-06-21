@@ -457,6 +457,52 @@ local function SelectGlobalSettingsTab(tabWidget, group, options)
 		end)
 		normalSwipeSettings:AddChild(normalSwipeColor)
 
+		local alwaysShowSwipe = AceGUI:Create("CheckBox")
+		alwaysShowSwipe:SetRelativeWidth(0.5)
+		alwaysShowSwipe:SetLabel("Always Show Swipe")
+		alwaysShowSwipe:SetValue(options.alwaysShowSwipe)
+		alwaysShowSwipe:SetCallback("OnValueChanged", function(_, _, value)
+			options.alwaysShowSwipe = value
+		end)
+		normalSwipeSettings:AddChild(alwaysShowSwipe)
+		alwaysShowSwipe:SetCallback("OnEnter", function(self)
+			GameTooltip:SetOwner(self.frame, "ANCHOR_CURSOR")
+			GameTooltip:AddLine(
+				'Always show the cooldown swipe even on spells with charges.',
+				1,
+				1,
+				1,
+				true
+			)
+			GameTooltip:Show()
+		end)
+		alwaysShowSwipe:SetCallback("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+
+		local removeDrawEdge = AceGUI:Create("CheckBox")
+		removeDrawEdge:SetRelativeWidth(0.5)
+		removeDrawEdge:SetLabel("Remove Draw Edge")
+		removeDrawEdge:SetValue(options.removeDrawEdge)
+		removeDrawEdge:SetCallback("OnValueChanged", function(_, _, value)
+			options.removeDrawEdge = value
+		end)
+		normalSwipeSettings:AddChild(removeDrawEdge)
+		removeDrawEdge:SetCallback("OnEnter", function(self)
+			GameTooltip:SetOwner(self.frame, "ANCHOR_CURSOR")
+			GameTooltip:AddLine(
+				'Remove the bright line following the cooldown swipe.',
+				1,
+				1,
+				1,
+				true
+			)
+			GameTooltip:Show()
+		end)
+		removeDrawEdge:SetCallback("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+
 		local activeSwipeSettings = AceGUI:Create("InlineGroup")
 		activeSwipeSettings:SetLayout("flow")
 		activeSwipeSettings:SetFullWidth(true)

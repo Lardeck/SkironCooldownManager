@@ -367,12 +367,19 @@ local function UpdateCustomIconCooldown(frame, iconType, config)
 	if iconType == "spell" then
 		local isOnCooldown = false
 		local spellCooldown = C_Spell.GetSpellCooldown(config.spellID)
+		local options = SCM.db.profile.options
 		if spellCooldown.isActive and not spellCooldown.isOnGCD then
 			local durationObject = C_Spell.GetSpellCooldownDuration(config.spellID, true)
 
 			frame.Icon:SetDesaturated(true)
 			frame.Cooldown:SetDrawEdge(false)
-			frame.Cooldown:SetSwipeColor(0, 0, 0, 0.7)
+
+			if options.recolorNormalSwipe then
+				frame.Cooldown:SetSwipeColor(unpack(options.normalSwipeColor))
+			else
+				frame.Cooldown:SetSwipeColor(0, 0, 0, 0.7)
+			end
+
 			frame.Cooldown:Clear()
 			frame.Cooldown:SetCooldownFromDurationObject(durationObject)
 			frame.Icon:SetDesaturation(C_CurveUtil.EvaluateColorValueFromBoolean(durationObject:IsZero(), 0, 1))
@@ -385,8 +392,23 @@ local function UpdateCustomIconCooldown(frame, iconType, config)
 			frame.Cooldown:Clear()
 			frame.Cooldown:SetCooldownFromDurationObject(C_Spell.GetSpellChargeDuration(config.spellID, true))
 			frame.Icon:SetDesaturated(false)
-			frame.Cooldown:SetDrawEdge(true)
-			frame.Cooldown:SetSwipeColor(0, 0, 0, 0)
+
+			if options.removeDrawEdge then
+				frame.Cooldown:SetDrawEdge(false)
+			else
+				frame.Cooldown:SetDrawEdge(true)
+			end
+
+			if options.alwaysShowSwipe then
+				frame.Cooldown:SetDrawSwipe(true)
+				if options.recolorNormalSwipe then
+					frame.Cooldown:SetSwipeColor(unpack(options.normalSwipeColor))
+				else
+					frame.Cooldown:SetSwipeColor(0, 0, 0, 0.7)
+				end
+			else
+				frame.Cooldown:SetSwipeColor(0, 0, 0, 0)
+			end
 			isOnCooldown = true
 		end
 
@@ -580,7 +602,11 @@ local function DoesItemOrSpellExists(config)
 		return true
 	end
 
-	if iconType == "spell" or iconType == "timer" or iconType == "bloodlust" then
+	if iconType == "spell" then
+		return config.spellID and C_SpellBook.IsSpellInSpellBook(config.spellID)
+	end
+
+	if iconType == "timer" or iconType == "bloodlust" then
 		return config.spellID and C_Spell.DoesSpellExist(config.spellID)
 	end
 
