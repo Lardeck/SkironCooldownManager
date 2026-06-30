@@ -9,6 +9,8 @@ local GetIconType = Utils.GetIconType
 local ResetChildSCMState = Utils.ResetChildSCMState
 local ToGlobalGroup = Utils.ToGlobalGroup
 
+local InCombatLockdown = InCombatLockdown
+
 local CustomItemFrames = {}
 local CustomSpellFrames = {}
 local BloodlustTimerEntries = {}
@@ -260,12 +262,15 @@ local function SetCustomIconCountText(frame, iconType, config)
 
 	local itemID = frame.SCMItemID
 
+	-- Returns true if in combat and hideStackInCombat is toggled on, otherwise false
+	local hideCount = config.hideStackInCombat == true and InCombatLockdown()
+
 	local count = C_Item.GetItemCount(itemID, false, true)
-	if not config.hideStackText then
+	if config.hideStackText or hideCount then
+		frame.ChargeCount.Current:SetText("")
+	else
 		frame.ChargeCount.Current:SetText(count)
 		frame.ChargeCount.Current:Show()
-	else
-		frame.ChargeCount.Current:SetText("")
 	end
 
 	if count <= 0 then
@@ -1173,14 +1178,17 @@ function CustomIcons.UpdateSpellRange(spellID, isInRange, checksRange)
 	end
 end
 
-local function UpdateCountTextForConfigTable(customConfig)
+-- Add combatOnly check to: CustomIcons.UpdateItemCountText(combatOnly) and UpdateCountTextForConfigTable(customConfig, combatOnly)
+-- so that we only process icons with hideStackInCombat enabled when player regen enabled/disabled event fires, would otherwise do a full update on all icons.
+
+local function UpdateCountTextForConfigTable(customConfig, combatOnly)
 	local visibilityChanged = false
 
 	for id, config in pairs(customConfig) do
 		local frame = CustomItemFrames[id]
 		if frame and not frame.SCMReleased then
 			local iconType = frame.SCMIconType
-			if iconType ~= "empty" then
+			if iconType ~= "empty" and (not combatOnly or config.hideStackInCombat) then
 				local previousItemID = frame.SCMItemID
 				local itemID = SetCustomItemID(frame, config)
 				if itemID ~= previousItemID then
@@ -1202,15 +1210,15 @@ local function UpdateCountTextForConfigTable(customConfig)
 	return visibilityChanged
 end
 
-function CustomIcons.UpdateItemCountText()
+function CustomIcons.UpdateItemCountText(combatOnly)
 	local visibilityChanged = false
 	local customConfig = SCM.customConfig
-	if customConfig and UpdateCountTextForConfigTable(customConfig.itemConfig) then
+	if customConfig and UpdateCountTextForConfigTable(customConfig.itemConfig, combatOnly) then
 		visibilityChanged = true
 	end
 
 	local globalCustomConfig = SCM.globalCustomConfig
-	if globalCustomConfig and UpdateCountTextForConfigTable(globalCustomConfig.itemConfig) then
+	if globalCustomConfig and UpdateCountTextForConfigTable(globalCustomConfig.itemConfig, combatOnly) then
 		visibilityChanged = true
 	end
 

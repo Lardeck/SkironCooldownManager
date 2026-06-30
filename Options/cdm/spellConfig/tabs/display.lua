@@ -3,7 +3,8 @@ local Options = SCM.Options
 local CDMOptions = Options.CDM
 local AceGUI = LibStub("AceGUI-3.0")
 
-local function AddIconColorOptions(iconSettingsTabs, iconSettings, scrollFrame, buttonFrame, buttonData, buttonConfig, anchorIndex, mode, isGlobal, isBuffBar)
+local function AddIconColorOptions(iconSettingsTabs, iconSettings, scrollFrame, buttonFrame, buttonData, buttonConfig,
+								   anchorIndex, mode, isGlobal, isBuffBar)
 	local options = SCM.db.profile.options
 
 	if buttonData.isCustom or buttonFrame.data.isBuffIcon then
@@ -52,7 +53,8 @@ local function AddIconColorOptions(iconSettingsTabs, iconSettings, scrollFrame, 
 	end
 end
 
-local function AddIconTextOptions(iconSettingsTabs, iconSettings, scrollFrame, buttonFrame, buttonData, buttonConfig, anchorIndex, mode, isGlobal, isBuffBar)
+local function AddIconTextOptions(iconSettingsTabs, iconSettings, scrollFrame, buttonFrame, buttonData, buttonConfig,
+								  anchorIndex, mode, isGlobal, isBuffBar)
 	if buttonData.isCustom and (buttonData.iconType == "item" or buttonData.iconType == "spell") then
 		local textOptions = AceGUI:Create("InlineGroup")
 		textOptions:SetLayout("flow")
@@ -71,15 +73,30 @@ local function AddIconTextOptions(iconSettingsTabs, iconSettings, scrollFrame, b
 			end)
 			textOptions:AddChild(showCraftQuality)
 
+			local hideStackInCombat -- Define local earlier so that hideStackText toggle can disable it later
+
 			local hideStackText = AceGUI:Create("CheckBox")
 			hideStackText:SetLabel("Hide Count")
 			hideStackText:SetRelativeWidth(0.5)
 			hideStackText:SetValue(buttonConfig.hideStackText)
 			hideStackText:SetCallback("OnValueChanged", function(self, event, value)
 				buttonConfig.hideStackText = value or nil
+				hideStackInCombat:SetDisabled(value)
 				CDMOptions.ApplyIconConfigUpdate(buttonFrame, buttonData, anchorIndex, mode, isGlobal, isBuffBar)
 			end)
 			textOptions:AddChild(hideStackText)
+
+			-- hideStackInCombat toggle
+			hideStackInCombat = AceGUI:Create("CheckBox")
+			hideStackInCombat:SetLabel("Hide Count In Combat")
+			hideStackInCombat:SetRelativeWidth(0.5)
+			hideStackInCombat:SetValue(buttonConfig.hideStackInCombat)
+			hideStackInCombat:SetDisabled(buttonConfig.hideStackText)
+			hideStackInCombat:SetCallback("OnValueChanged", function(self, event, value)
+				buttonConfig.hideStackInCombat = value or nil
+				CDMOptions.ApplyIconConfigUpdate(buttonFrame, buttonData, anchorIndex, mode, isGlobal, isBuffBar)
+			end)
+			textOptions:AddChild(hideStackInCombat)
 		elseif buttonData.iconType == "spell" then
 			local forceShowCharges = AceGUI:Create("CheckBox")
 			forceShowCharges:SetLabel("Force Show Charges")
@@ -94,7 +111,10 @@ local function AddIconTextOptions(iconSettingsTabs, iconSettings, scrollFrame, b
 	end
 end
 
-function CDMOptions.CreateDisplayTabSettings(iconSettingsTabs, iconSettings, scrollFrame, buttonFrame, buttonData, iconConfig, anchorIndex, mode, isGlobal, isBuffBar)
-	AddIconColorOptions(iconSettingsTabs, iconSettings, scrollFrame, buttonFrame, buttonData, iconConfig, anchorIndex, mode, isGlobal, isBuffBar)
-	AddIconTextOptions(iconSettingsTabs, iconSettings, scrollFrame, buttonFrame, buttonData, iconConfig, anchorIndex, mode, isGlobal, isBuffBar)
+function CDMOptions.CreateDisplayTabSettings(iconSettingsTabs, iconSettings, scrollFrame, buttonFrame, buttonData,
+											 iconConfig, anchorIndex, mode, isGlobal, isBuffBar)
+	AddIconColorOptions(iconSettingsTabs, iconSettings, scrollFrame, buttonFrame, buttonData, iconConfig, anchorIndex,
+		mode, isGlobal, isBuffBar)
+	AddIconTextOptions(iconSettingsTabs, iconSettings, scrollFrame, buttonFrame, buttonData, iconConfig, anchorIndex,
+		mode, isGlobal, isBuffBar)
 end
