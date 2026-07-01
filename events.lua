@@ -14,6 +14,7 @@ function SCM:PLAYER_ENTERING_WORLD(isInitialLogin, isReload)
 		SCM:CreateCastBar()
 
 		eventFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
+		eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 		eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 		eventFrame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
 		eventFrame:RegisterEvent("SPELL_UPDATE_CHARGES")
@@ -158,7 +159,13 @@ function SCM:PLAYER_EQUIPED_SPELLS_CHANGED()
 	eventFrame:UnregisterEvent("PLAYER_EQUIPED_SPELLS_CHANGED")
 end
 
-function SCM:PLAYER_REGEN_DISABLED() end
+function SCM:PLAYER_REGEN_ENABLED()
+	SCM.CustomIcons.UpdateItemCountText(true) -- Combat started, check icons with config.hideStackInCombat
+end
+
+function SCM:PLAYER_REGEN_DISABLED()
+	SCM.CustomIcons.UpdateItemCountText(true) -- Combat ended, check icons with config.hideStackInCombat
+end
 
 function SCM:EDIT_MODE_LAYOUTS_UPDATED()
 	SCM:UpdateDB()
