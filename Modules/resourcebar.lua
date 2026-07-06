@@ -1185,7 +1185,7 @@ function SCMResourceBarControllerMixin:HookAnchorWidthRefresh(anchor)
 	end)
 end
 
-function SCMResourceBarControllerMixin:ApplyFrameWidthOptions(bar)
+function SCMResourceBarControllerMixin:ApplyFrameWidthOptions(bar, forcePositionUpdate)
 	local specificBarOptions = bar.barOptions
 	local generalBarOptions = self.barOptions
 	local oldAnchor = self.SCMActiveAnchorFrame
@@ -1206,7 +1206,7 @@ function SCMResourceBarControllerMixin:ApplyFrameWidthOptions(bar)
 			self:HookAnchorWidthRefresh(anchor)
 		end
 
-		if anchor ~= oldAnchor then
+		if forcePositionUpdate or anchor ~= oldAnchor then
 			--No idea whats going in with these fucking pixels. BRB taking a math class
 			self:ClearAllPoints()
 			PixelUtil.SetPoint(self, generalBarOptions.point, anchor, generalBarOptions.relativePoint, generalBarOptions.xOffset, generalBarOptions.yOffset)
@@ -1712,10 +1712,10 @@ function SCMResourceBarControllerMixin:RefreshResourceBars(refreshTicks, options
 		local primaryWidthChanged = false
 		local secondaryWidthChanged = false
 		if primaryBarOptions.enabled then
-			primaryWidthChanged = self:ApplyFrameWidthOptions(self.PrimaryBar)
+			primaryWidthChanged = self:ApplyFrameWidthOptions(self.PrimaryBar, optionsChanged)
 		end
 		if secondaryBarOptions.enabled then
-			secondaryWidthChanged = self:ApplyFrameWidthOptions(self.SecondaryBar)
+			secondaryWidthChanged = self:ApplyFrameWidthOptions(self.SecondaryBar, optionsChanged)
 		end
 
 		local primaryHeightChanged, secondaryHeightChanged = self:UpdateBarLayout()

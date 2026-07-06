@@ -6,19 +6,152 @@ local AceDBOptions = LibStub("AceDBOptions-3.0")
 
 SCM.MainTabs.Profiles = { value = "Profiles", text = "Profiles", order = 9, subgroups = {} }
 
+local profileIncludeOptions = {
+	{ key = "includeResourceBar", label = "Resource Bar Settings" },
+	{ key = "includeCastBar", label = "Cast Bar Settings" },
+	{ key = "includeGlobalSettings", label = "Global Settings" },
+	{ key = "includeGlobalAnchors", label = "Global Icon Anchors" },
+}
+
+local function CreateProfileOptionControls(parent, state, onRefresh)
+	local RefreshControls
+
+	local specificClassCheckbox = AceGUI:Create("CheckBox")
+	specificClassCheckbox:SetLabel("Class")
+	specificClassCheckbox:SetRelativeWidth(0.5)
+	specificClassCheckbox:SetValue(state.useSpecificClass)
+	parent:AddChild(specificClassCheckbox)
+
+	local classDropdown = AceGUI:Create("Dropdown")
+	classDropdown:SetLabel("Select Class")
+	classDropdown:SetList(SCM.Utils.GetClassList(true))
+	classDropdown:SetRelativeWidth(0.5)
+	classDropdown:SetDisabled(true)
+	classDropdown.text:SetJustifyH("LEFT")
+	classDropdown:SetValue(state.selectedClass)
+	parent:AddChild(classDropdown)
+
+	local specificSpecCheckbox = AceGUI:Create("CheckBox")
+	specificSpecCheckbox:SetLabel("Specific Spec")
+	specificSpecCheckbox:SetRelativeWidth(0.5)
+	specificSpecCheckbox:SetValue(state.useSpecificSpec)
+	specificSpecCheckbox:SetDisabled(true)
+	parent:AddChild(specificSpecCheckbox)
+
+	local specDropdown = AceGUI:Create("Dropdown")
+	specDropdown:SetLabel("Select Spec")
+	specDropdown:SetList({})
+	specDropdown:SetRelativeWidth(0.5)
+	specDropdown:SetDisabled(true)
+	specDropdown.text:SetJustifyH("LEFT")
+	specDropdown:SetValue(state.selectedSpec)
+	parent:AddChild(specDropdown)
+
+	for _, option in ipairs(profileIncludeOptions) do
+		local checkbox = AceGUI:Create("CheckBox")
+		checkbox:SetLabel(option.label)
+		checkbox:SetRelativeWidth(0.25)
+		checkbox:SetValue(state[option.key])
+		parent:AddChild(checkbox)
+
+		checkbox:SetCallback("OnValueChanged", function(_, _, value)
+			state[option.key] = value
+			RefreshControls()
+		end)
+	end
+
+	RefreshControls = function()
+		state.selectedClass = classDropdown:GetValue()
+		local hasSpecificClass = state.useSpecificClass and state.selectedClass ~= nil
+		local filteredSpecs = hasSpecificClass and SCM.Utils.GetSpecList(state.selectedClass) or {}
+		local hasSpecs = next(filteredSpecs) ~= nil
+
+		classDropdown:SetDisabled(not state.useSpecificClass)
+		specificSpecCheckbox:SetDisabled(not hasSpecificClass or not hasSpecs)
+
+		if (not hasSpecificClass or not hasSpecs) and state.useSpecificSpec then
+			state.useSpecificSpec = false
+			specificSpecCheckbox:SetValue(false)
+		end
+
+		specDropdown:SetList(filteredSpecs)
+		if not filteredSpecs[specDropdown:GetValue()] then
+			specDropdown:SetValue(nil)
+		end
+		state.selectedSpec = specDropdown:GetValue()
+		specDropdown:SetDisabled(not state.useSpecificSpec or not hasSpecs)
+
+		if onRefresh then
+			onRefresh(state)
+		end
+	end
+
+	specificClassCheckbox:SetCallback("OnValueChanged", function(_, _, value)
+		state.useSpecificClass = value
+		if not value then
+			state.useSpecificSpec = false
+			state.selectedSpec = nil
+			specificSpecCheckbox:SetValue(false)
+			specDropdown:SetValue(nil)
+		end
+		RefreshControls()
+	end)
+
+	classDropdown:SetCallback("OnValueChanged", function(_, _, value)
+		if not state.useSpecificClass then
+			return
+		end
+
+		state.selectedClass = value
+		state.selectedSpec = nil
+		specDropdown:SetValue(nil)
+		RefreshControls()
+	end)
+
+	specificSpecCheckbox:SetCallback("OnValueChanged", function(_, _, value)
+		state.useSpecificSpec = value
+		if not value then
+			state.selectedSpec = nil
+			specDropdown:SetValue(nil)
+		end
+		RefreshControls()
+	end)
+
+	specDropdown:SetCallback("OnValueChanged", function(_, _, value)
+		state.selectedSpec = value
+		RefreshControls()
+	end)
+
+	RefreshControls()
+
+	return RefreshControls
+end
+
 local function CreateImportEditBox(Profiles, widget, frame, group)
 	widget:ReleaseChildren()
 
-	local editGroup = AceGUI:Create("InlineGroup")
-	editGroup:SetFullWidth(true)
-	editGroup:SetFullHeight(true)
-	editGroup:SetLayout("flow")
-	widget:AddChild(editGroup)
+	local importSettings = {
+		useSpecificClass = true,
+		useSpecificSpec = false,
+		selectedClass = "ALL",
+		includeResourceBar = true,
+		includeCastBar = true,
+		includeGlobalSettings = true,
+		includeGlobalAnchors = true,
+	}
+
+	local importGroup = AceGUI:Create("InlineGroup")
+	importGroup:SetFullWidth(true)
+	importGroup:SetFullHeight(true)
+	importGroup:SetLayout("flow")
+	widget:AddChild(importGroup)
 
 	local profileName = AceGUI:Create("EditBox")
 	profileName:SetFullWidth(true)
 	profileName:SetLabel("Profile Name (Optional)")
-	editGroup:AddChild(profileName)
+	importGroup:AddChild(profileName)
+
+	CreateProfileOptionControls(importGroup, importSettings)
 
 	local editBox = AceGUI:Create("MultiLineEditBox")
 	editBox:SetFullWidth(true)
@@ -31,8 +164,9 @@ local function CreateImportEditBox(Profiles, widget, frame, group)
 	end)
 
 	editBox.frame:SetClipsChildren(true)
-	editGroup:AddChild(editBox)
-	return editBox, profileName
+	importGroup:AddChild(editBox)
+
+	return editBox, profileName, importSettings
 end
 
 local function CreateExportEditBox(Profiles, widget, frame, group, exportString)
@@ -80,9 +214,9 @@ local function Profiles(widget, frame, group)
 	importButton:SetText("Import")
 	importButton:SetRelativeWidth(1)
 	importButton:SetCallback("OnClick", function()
-		local editBox, profileName = CreateImportEditBox(Profiles, widget, frame, group)
+		local editBox, profileName, importSettings = CreateImportEditBox(Profiles, widget, frame, group)
 		editBox:SetCallback("OnEnterPressed", function(self, event, text)
-			SCM:ImportProfile(profileName:GetText(), text)
+			SCM:ImportProfile(profileName:GetText(), text, importSettings)
 			Profiles(widget, frame, group)
 		end)
 	end)
@@ -103,156 +237,38 @@ local function Profiles(widget, frame, group)
 		includeGlobalAnchors = false,
 	}
 
-	local specificClassCheckbox = AceGUI:Create("CheckBox")
-	specificClassCheckbox:SetLabel("Class")
-	specificClassCheckbox:SetRelativeWidth(0.5)
-	specificClassCheckbox:SetValue(exportState.useSpecificClass)
-	exportGroup:AddChild(specificClassCheckbox)
+	local exportButton
+	local refreshExportControls = CreateProfileOptionControls(exportGroup, exportState, function(state)
+		if not exportButton then
+			return
+		end
 
-	local classDropdown = AceGUI:Create("Dropdown")
-	classDropdown:SetLabel("Select Class")
-	classDropdown:SetList(SCM.Utils.GetClassList(true))
-	classDropdown:SetRelativeWidth(0.5)
-	classDropdown:SetDisabled(true)
-	classDropdown.text:SetJustifyH("LEFT")
-	exportGroup:AddChild(classDropdown)
+		local hasSpecificClass = state.useSpecificClass and state.selectedClass ~= nil
+		local hasOptions = state.includeResourceBar or state.includeCastBar or state.includeGlobalSettings or state.includeGlobalAnchors
+		exportButton:SetDisabled((state.useSpecificClass and not state.selectedClass) or (state.useSpecificSpec and not state.selectedSpec) or (not hasSpecificClass and not hasOptions))
+	end)
 
-	local specificSpecCheckbox = AceGUI:Create("CheckBox")
-	specificSpecCheckbox:SetLabel("Specific Spec")
-	specificSpecCheckbox:SetRelativeWidth(0.5)
-	specificSpecCheckbox:SetValue(exportState.useSpecificSpec)
-	specificSpecCheckbox:SetDisabled(true)
-	exportGroup:AddChild(specificSpecCheckbox)
-
-	local specDropdown = AceGUI:Create("Dropdown")
-	specDropdown:SetLabel("Select Spec")
-	specDropdown:SetList({})
-	specDropdown:SetRelativeWidth(0.5)
-	specDropdown:SetDisabled(true)
-	specDropdown.text:SetJustifyH("LEFT")
-	exportGroup:AddChild(specDropdown)
-
-	local resourceBarCheckbox = AceGUI:Create("CheckBox")
-	resourceBarCheckbox:SetLabel("Resource Bar Settings")
-	resourceBarCheckbox:SetRelativeWidth(0.25)
-	resourceBarCheckbox:SetValue(exportState.includeResourceBar)
-	exportGroup:AddChild(resourceBarCheckbox)
-
-	local castBarCheckbox = AceGUI:Create("CheckBox")
-	castBarCheckbox:SetLabel("Cast Bar Settings")
-	castBarCheckbox:SetRelativeWidth(0.25)
-	castBarCheckbox:SetValue(exportState.includeCastBar)
-	exportGroup:AddChild(castBarCheckbox)
-
-	local globalSettingsCheckbox = AceGUI:Create("CheckBox")
-	globalSettingsCheckbox:SetLabel("Global Settings")
-	globalSettingsCheckbox:SetRelativeWidth(0.25)
-	globalSettingsCheckbox:SetValue(exportState.includeGlobalSettings)
-	exportGroup:AddChild(globalSettingsCheckbox)
-
-	local globalAnchorsCheckbox = AceGUI:Create("CheckBox")
-	globalAnchorsCheckbox:SetLabel("Global Icon Anchors")
-	globalAnchorsCheckbox:SetRelativeWidth(0.25)
-	globalAnchorsCheckbox:SetValue(exportState.includeGlobalAnchors)
-	exportGroup:AddChild(globalAnchorsCheckbox)
-
-	local exportButton = AceGUI:Create("Button")
+	exportButton = AceGUI:Create("Button")
 	exportButton:SetText("Export")
 	exportButton:SetRelativeWidth(1)
 	exportButton:SetCallback("OnClick", function()
-		local selectedClass = exportState.useSpecificClass and classDropdown:GetValue() or nil
-		local selectedSpec = exportState.useSpecificSpec and specDropdown:GetValue() or nil
+		local selectedClass = exportState.useSpecificClass and exportState.selectedClass or nil
+		local selectedSpec = exportState.useSpecificSpec and exportState.selectedSpec or nil
 		CreateExportEditBox(
 			Profiles,
 			widget,
 			frame,
 			group,
 			SCM:ExportProfile(selectedClass, selectedSpec, {
-				includeResourceBar = resourceBarCheckbox:GetValue(),
-				includeCastBar = castBarCheckbox:GetValue(),
-				includeGlobalSettings = globalSettingsCheckbox:GetValue(),
-				includeGlobalAnchors = globalAnchorsCheckbox:GetValue(),
+				includeResourceBar = exportState.includeResourceBar,
+				includeCastBar = exportState.includeCastBar,
+				includeGlobalSettings = exportState.includeGlobalSettings,
+				includeGlobalAnchors = exportState.includeGlobalAnchors,
 			})
 		)
 	end)
 	exportGroup:AddChild(exportButton)
-
-	local function RefreshExportControls()
-		local selectedClass = classDropdown:GetValue()
-		local hasSpecificClass = exportState.useSpecificClass and selectedClass ~= nil
-		local filteredSpecs = hasSpecificClass and SCM.Utils.GetSpecList(selectedClass) or {}
-		local hasSpecs = next(filteredSpecs) ~= nil
-
-		classDropdown:SetDisabled(not exportState.useSpecificClass)
-		specificSpecCheckbox:SetDisabled(not hasSpecificClass or not hasSpecs)
-
-		if (not hasSpecificClass or not hasSpecs) and exportState.useSpecificSpec then
-			exportState.useSpecificSpec = false
-			specificSpecCheckbox:SetValue(false)
-		end
-
-		specDropdown:SetList(filteredSpecs)
-		if not filteredSpecs[specDropdown:GetValue()] then
-			specDropdown:SetValue(nil)
-		end
-		specDropdown:SetDisabled(not exportState.useSpecificSpec or not hasSpecs)
-
-		local hasOptions = exportState.includeResourceBar or exportState.includeCastBar or exportState.includeGlobalSettings or exportState.includeGlobalAnchors
-		exportButton:SetDisabled((exportState.useSpecificClass and not selectedClass) or (exportState.useSpecificSpec and not specDropdown:GetValue()) or (not hasSpecificClass and not hasOptions))
-	end
-
-	specificClassCheckbox:SetCallback("OnValueChanged", function(_, _, value)
-		exportState.useSpecificClass = value
-		if not value then
-			exportState.useSpecificSpec = false
-			specificSpecCheckbox:SetValue(false)
-			specDropdown:SetValue(nil)
-		end
-		RefreshExportControls()
-	end)
-
-	classDropdown:SetCallback("OnValueChanged", function(_, _, value)
-		if not exportState.useSpecificClass then
-			return
-		end
-
-		specDropdown:SetValue(nil)
-		RefreshExportControls()
-	end)
-
-	specificSpecCheckbox:SetCallback("OnValueChanged", function(_, _, value)
-		exportState.useSpecificSpec = value
-		if not value then
-			specDropdown:SetValue(nil)
-		end
-		RefreshExportControls()
-	end)
-
-	specDropdown:SetCallback("OnValueChanged", function()
-		RefreshExportControls()
-	end)
-
-	resourceBarCheckbox:SetCallback("OnValueChanged", function(_, _, value)
-		exportState.includeResourceBar = value
-		RefreshExportControls()
-	end)
-
-	castBarCheckbox:SetCallback("OnValueChanged", function(_, _, value)
-		exportState.includeCastBar = value
-		RefreshExportControls()
-	end)
-
-	globalSettingsCheckbox:SetCallback("OnValueChanged", function(_, _, value)
-		exportState.includeGlobalSettings = value
-		RefreshExportControls()
-	end)
-
-	globalAnchorsCheckbox:SetCallback("OnValueChanged", function(_, _, value)
-		exportState.includeGlobalAnchors = value
-		RefreshExportControls()
-	end)
-
-	RefreshExportControls()
+	refreshExportControls()
 
 	local dbOptionsGroup = AceGUI:Create("InlineGroup")
 	dbOptionsGroup:SetTitle("Profile Management")

@@ -11,8 +11,17 @@ function SCMAPI.RegisterClassConfig(classFileName, config)
 	end
 end
 
-function SCMAPI.ImportProfile(profileName, importString)
-	SCM:ImportProfile(profileName, importString)
+-- importSettings can contain:
+--   useSpecificClass: import class/spec profile data.
+--   useSpecificSpec: limit class/spec profile data to selectedSpec.
+--   selectedClass: uppercase class file name or "ALL".
+--   selectedSpec: specialization ID used when useSpecificSpec is true.
+--   includeResourceBar: import resource bar settings.
+--   includeCastBar: import cast bar settings.
+--   includeGlobalSettings: import global settings.
+--   includeGlobalAnchors: import global anchors.
+function SCMAPI.ImportProfile(profileName, importString, importSettings)
+	SCM:ImportProfile(profileName, importString, importSettings)
 end
 
 function SCMAPI.ImportGlobalSettings(importString)

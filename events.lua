@@ -15,6 +15,7 @@ function SCM:PLAYER_ENTERING_WORLD(isInitialLogin, isReload)
 
 		eventFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
 		eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+		eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 		eventFrame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
 		eventFrame:RegisterEvent("SPELL_UPDATE_CHARGES")
 		eventFrame:RegisterEvent("SPELL_UPDATE_USES")
@@ -159,6 +160,9 @@ function SCM:PLAYER_EQUIPED_SPELLS_CHANGED()
 end
 
 function SCM:PLAYER_REGEN_DISABLED() end
+function SCM:PLAYER_REGEN_ENABLED()
+	SCM.RefreshCooldownViewerData()
+end
 
 function SCM:EDIT_MODE_LAYOUTS_UPDATED()
 	SCM:UpdateDB()

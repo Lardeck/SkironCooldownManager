@@ -265,19 +265,40 @@ function SCM:GetFreeProfileName(profileName)
 	return "New Profile " .. index
 end
 
-function SCM:ImportProfile(profileName, importString)
+local function ImportSpec(db, defaultAnchor, classFileName, specID, specConfig)
+	if not classFileName or type(specConfig) ~= "table" then
+		return
+	end
+
+	specID = tonumber(specID) or specID
+	db[classFileName] = db[classFileName] or {}
+	db[classFileName][specID] = db[classFileName][specID] or CopyTable(SCM.DefaultClassConfig)
+	MergeConfig(db[classFileName][specID], specConfig, defaultAnchor)
+end
+
+function SCM:ImportProfile(profileName, importString, importSettings)
 	local typeID, data = DecodeImportString(importString)
 	if not typeID then
 		return
 	end
 
+	local hasImportSettings = type(importSettings) == "table"
+	local includeResourceBar = not hasImportSettings or importSettings.includeResourceBar
+	local includeCastBar = not hasImportSettings or importSettings.includeCastBar
+	local includeGlobalSettings = not hasImportSettings or importSettings.includeGlobalSettings
+	local includeGlobalAnchors = not hasImportSettings or importSettings.includeGlobalAnchors
+
 	if typeID == EXPORT_TYPE_GLOBAL_SETTINGS then
-		self:ImportGlobalSettingsFromData(data)
+		if includeGlobalSettings then
+			self:ImportGlobalSettingsFromData(data)
+		end
 		return
 	end
 
 	if typeID == EXPORT_TYPE_GLOBAL_ANCHORS then
-		self:ImportGlobalAnchorsFromData(data, true)
+		if includeGlobalAnchors then
+			self:ImportGlobalAnchorsFromData(data, true)
+		end
 		return
 	end
 
@@ -307,49 +328,70 @@ function SCM:ImportProfile(profileName, importString)
 	local options = db.options
 	local defaultAnchor = self.DB.defaultAnchorConfig
 
-	if typeID == EXPORT_TYPE_ALL then -- All classes
-		for classFileName, classConfig in pairs(data) do
-			db[classFileName] = db[classFileName] or {}
-			for specID, specConfig in pairs(classConfig) do
-				db[classFileName][specID] = db[classFileName][specID] or CopyTable(SCM.DefaultClassConfig)
-				MergeConfig(db[classFileName][specID], specConfig, defaultAnchor)
+	local selectedClass = hasImportSettings and (importSettings.selectedClass or "ALL") or "ALL"
+	local selectedSpec = hasImportSettings and importSettings.useSpecificSpec and tonumber(importSettings.selectedSpec) or nil
+	local selectedSpecKey = selectedSpec and tostring(selectedSpec)
+	local importAllClasses = selectedClass == "ALL"
+	local importProfileData = not hasImportSettings or importSettings.useSpecificClass
+
+	if importProfileData then
+		if typeID == EXPORT_TYPE_ALL then
+			if selectedSpec then
+				local classFileName = importAllClasses and select(6, GetSpecializationInfoByID(selectedSpec)) or selectedClass
+				local classConfig = classFileName and data[classFileName]
+				local specConfig = type(classConfig) == "table" and (classConfig[selectedSpec] or classConfig[selectedSpecKey])
+				ImportSpec(db, defaultAnchor, classFileName, selectedSpec, specConfig)
+			elseif not importAllClasses then
+				local classConfig = data[selectedClass]
+				if type(classConfig) == "table" then
+					for specID, specConfig in pairs(classConfig) do
+						ImportSpec(db, defaultAnchor, selectedClass, specID, specConfig)
+					end
+				end
+			else
+				for classFileName, classConfig in pairs(data) do
+					if type(classConfig) == "table" then
+						for specID, specConfig in pairs(classConfig) do
+							ImportSpec(db, defaultAnchor, classFileName, specID, specConfig)
+						end
+					end
+				end
 			end
-		end
-	elseif typeID == EXPORT_TYPE_CLASS then -- Single class
-		for specID, specConfig in pairs(data) do
-			local classFileName = select(6, GetSpecializationInfoByID(specID))
-
-			if classFileName then
-				db[classFileName] = db[classFileName] or {}
-				db[classFileName][specID] = db[classFileName][specID] or CopyTable(SCM.DefaultClassConfig)
-
-				MergeConfig(db[classFileName][specID], specConfig, defaultAnchor)
+		elseif typeID == EXPORT_TYPE_CLASS then
+			if selectedSpec then
+				local classFileName = importAllClasses and select(6, GetSpecializationInfoByID(selectedSpec)) or selectedClass
+				ImportSpec(db, defaultAnchor, classFileName, selectedSpec, data[selectedSpec] or data[selectedSpecKey])
+			else
+				for specID, specConfig in pairs(data) do
+					local specIDNumber = tonumber(specID) or specID
+					local classFileName = select(6, GetSpecializationInfoByID(specIDNumber))
+					if importAllClasses or selectedClass == classFileName then
+						ImportSpec(db, defaultAnchor, classFileName, specIDNumber, specConfig)
+					end
+				end
 			end
-		end
-	elseif typeID then -- Single Spec
-		local classFileName = select(6, GetSpecializationInfoByID(typeID))
-
-		if classFileName then
-			db[classFileName] = db[classFileName] or {}
-			db[classFileName][typeID] = db[classFileName][typeID] or CopyTable(SCM.DefaultClassConfig)
-			MergeConfig(db[classFileName][typeID], data, defaultAnchor)
+		elseif typeID then
+			local classFileName = select(6, GetSpecializationInfoByID(typeID))
+			if (importAllClasses or selectedClass == classFileName) and (not selectedSpec or selectedSpec == typeID) then
+				ImportSpec(db, defaultAnchor, classFileName, typeID, data)
+			end
 		end
 	end
 
 	if importedSections then
-		if importedSections.resourceBarSettings then
+		if includeResourceBar and importedSections.resourceBarSettings then
 			ApplyResourceBarSettings(options, importedSections.resourceBarSettings)
 		end
 
-		if importedSections.castBarSettings then
+		if includeCastBar and importedSections.castBarSettings then
 			options.castBar = CopyValue(importedSections.castBarSettings)
 		end
 
-		if importedSections.globalSettings then
+		if includeGlobalSettings and importedSections.globalSettings then
 			ApplyOptionsData(options, importedSections.globalSettings)
 		end
 
-		if importedSections.globalAnchors then
+		if includeGlobalAnchors and importedSections.globalAnchors then
 			self:ImportGlobalAnchorsFromData(importedSections.globalAnchors)
 		end
 	end

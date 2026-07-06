@@ -540,7 +540,7 @@ local function LayoutAnchorGroup(group, visibleChildren, anchorConfig, options, 
 				end
 			end
 
-			SCM:UpdateUUFValues(options, effectiveWidth, rowConfig)
+			SCM:UpdateUFValues(options, effectiveWidth, rowConfig)
 		end
 	end
 

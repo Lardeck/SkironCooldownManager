@@ -147,7 +147,7 @@ function SCM:UpdateCooldownInfo()
 		for _, cooldownID in ipairs(cooldownIDs) do
 			local info = C_CooldownViewer.GetCooldownViewerCooldownInfo(cooldownID)
 			if info then
-				local data = displayData[cooldownID]
+				local data = CopyTable(displayData[cooldownID])
 				if data then
 					self.defaultCooldownViewerConfig[cooldownCategory][data.cooldownID] = data
 					self.defaultCooldownViewerConfig[cooldownCategory].cooldownIDs[data.cooldownID] = data

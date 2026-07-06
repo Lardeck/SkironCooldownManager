@@ -3,8 +3,6 @@ local Options = SCM.Options
 local CDMOptions = Options.CDM
 local AceGUI = LibStub("AceGUI-3.0")
 
-
-
 local function AddTimerOptions(iconSettingsTabs, iconSettings, scrollFrame, buttonFrame, buttonData, buttonConfig, anchorIndex, mode, isGlobal, isBuffBar)
 	if buttonData.isCustom and (buttonData.iconType == "spell" or buttonData.iconType == "timer") then
 		local timerOptions = AceGUI:Create("InlineGroup")
@@ -28,6 +26,40 @@ local function AddTimerOptions(iconSettingsTabs, iconSettings, scrollFrame, butt
 end
 
 local function AddIconOptions(iconSettingsTabs, iconSettings, scrollFrame, buttonFrame, buttonData, buttonConfig, anchorIndex, mode, isGlobal, isBuffBar)
+	local options = SCM.db.profile.options
+
+	if not buttonData.isCustom and buttonData.iconType == "spell" then
+		local glowOptions = AceGUI:Create("InlineGroup")
+		glowOptions:SetLayout("flow")
+		glowOptions:SetFullWidth(true)
+		glowOptions:SetTitle("Glow")
+		iconSettingsTabs:AddChild(glowOptions)
+
+		local useCustomGlowColor = AceGUI:Create("CheckBox")
+		useCustomGlowColor:SetLabel("Use Custom Glow Color")
+		useCustomGlowColor:SetRelativeWidth(0.5)
+		useCustomGlowColor:SetValue(buttonConfig.useCustomGlowColor)
+		useCustomGlowColor:SetDisabled(not options.useCustomGlow)
+		SCM.Utils.SetDisabledTooltip(useCustomGlowColor, "Enable 'Use Custom Glow' in Global Settings > Glow first.")
+		useCustomGlowColor:SetCallback("OnValueChanged", function(self, event, value)
+			buttonConfig.useCustomGlowColor = value or nil
+			CDMOptions.ApplyIconConfigUpdate(buttonFrame, buttonData, anchorIndex, mode, isGlobal, isBuffBar)
+		end)
+		glowOptions:AddChild(useCustomGlowColor)
+
+		local customGlowColor = AceGUI:Create("ColorPicker")
+		customGlowColor:SetRelativeWidth(0.33)
+		customGlowColor:SetLabel("Glow Color")
+		customGlowColor:SetHasAlpha(true)
+		customGlowColor:SetDisabled(not options.useCustomGlow)
+		if buttonConfig.customGlowColor then
+			customGlowColor:SetColor(unpack(buttonConfig.customGlowColor))
+		end
+		customGlowColor:SetCallback("OnValueChanged", function(self, event, r, g, b, a)
+			buttonConfig.customGlowColor = { r, g, b, a }
+		end)
+		glowOptions:AddChild(customGlowColor)
+	end
 
 	AddTimerOptions(iconSettingsTabs, iconSettings, scrollFrame, buttonFrame, buttonData, buttonConfig, anchorIndex, mode, isGlobal, isBuffBar)
 end

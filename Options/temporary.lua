@@ -27,30 +27,6 @@ local function Temporary(self, frame, group)
 	uufSettings:SetTitle("Unit Frames")
 	generalFrame:AddChild(uufSettings)
 
-	local anchorUUF = AceGUI:Create("CheckBox")
-	anchorUUF:SetRelativeWidth(0.5)
-	anchorUUF:SetLabel("Reanchor UUF")
-	anchorUUF:SetValue(options.anchorUUF)
-	anchorUUF:SetCallback("OnValueChanged", function(_, _, value)
-		options.anchorUUF = value
-		SCM:ApplyAllCDManagerConfigs()
-	end)
-	uufSettings:AddChild(anchorUUF)
-
-	local anchorUUFRoles = AceGUI:Create("Dropdown")
-	anchorUUFRoles:SetRelativeWidth(0.5)
-	anchorUUFRoles:SetLabel("Reanchor UUF Roles")
-	anchorUUFRoles:SetList(SCM.Constants.Roles)
-	anchorUUFRoles:SetMultiselect(true)
-	anchorUUFRoles:SetCallback("OnValueChanged", function(_, _, key, value)
-		options.anchorUUFRoles[key] = value
-		SCM:ApplyAllCDManagerConfigs()
-	end)
-	for key, value in pairs(options.anchorUUFRoles) do
-		anchorUUFRoles:SetItemValue(key, value)
-	end
-	uufSettings:AddChild(anchorUUFRoles)
-
 	local anchorElvUI = AceGUI:Create("CheckBox")
 	anchorElvUI:SetRelativeWidth(0.5)
 	anchorElvUI:SetLabel("Reanchor ElvUI")

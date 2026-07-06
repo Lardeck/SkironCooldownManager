@@ -224,7 +224,7 @@ local function OpenOptions()
 	end
 
 	frame:SetHeight(1000)
-	frame:SetWidth(800)
+	frame:SetWidth(850)
 
 	local tabsTbl = {}
 	for _, tab in pairs(SCM.MainTabs) do

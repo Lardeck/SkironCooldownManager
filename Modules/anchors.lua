@@ -1,7 +1,7 @@
 local SCM = select(2, ...)
-
 local Utils = SCM.Utils
-local OriginalElvUIAnchors = {}
+
+local lastXOffset, lastYOffset, lastHeight, lastPadding
 
 local function OnResourceBarWidthChanged(self)
 	UIParent.SetWidth(self, self.SCMWidth)
@@ -23,195 +23,46 @@ function SCM:UpdateResourceBarWidth(maxGroupWidth)
 	end
 end
 
-function SCM:UpdateUUFValues(options, maxGroupWidth, rowConfig)
-	local offset = min((maxGroupWidth - 150), 0)
-	local mainAnchor = SCM:GetAnchor(1)
-	local height = floor((rowConfig[1].iconHeight or rowConfig[1].size) + 0.5) + options.anchorsHeightOffset
-
-	if UUF_Player then
-		if options.anchorUUF and options.anchorUUFRoles[(select(5, Utils.GetSpec()))] then
-			if not UUF_Player.SCMOriginalAnchor then
-				UUF_Player.SCMOriginalAnchor = { UUF_Player:GetPoint() }
-				UUF_Player.SCMOriginalWidth = UUF_Player:GetWidth()
-				UUF_Player.SCMOriginalHeight = UUF_Player:GetHeight()
-			end
-			UUF_Player:ClearAllPoints()
-
-			mainAnchor.SetPoint(UUF_Player, "TOPRIGHT", mainAnchor, "TOPLEFT", offset - options.temporaryPadding, options.anchorsYOffset)
-
-			UUF_Player.SCMOffset = offset - options.temporaryPadding
-			UUF_Player.SCMYOffset = options.anchorsYOffset
-			UUF_Player.SCMHeight = height
-			UUF_Player.SCMAnchor = mainAnchor
-			UUF_Player.SCMCustomAnchor = true
-
-			if options.adjustHeight then
-				UUF_Player:SetHeight(height)
-				UUF_Player_HealthBar:SetHeight(height - 2)
-				UUF_Player_HealthBackground:SetHeight(height - 2)
-
-				if UUF_Player.HealthPrediction then
-					if UUF_Player.HealthPrediction.healAbsorb then
-						UUF_Player.HealthPrediction.healAbsorb:SetHeight(height - 2)
-					end
-
-					if UUF_Player.HealthPrediction.damageAbsorb then
-						UUF_Player.HealthPrediction.damageAbsorb:SetHeight(height - 2)
-					end
-				end
-			end
-
-			if not UUF_Player.SCMHook then
-				UUF_Player.SCMHook = true
-				hooksecurefunc(UUF_Player, "SetPoint", function(self)
-					if self.SCMAnchor and options.anchorUUF and options.anchorUUFRoles and options.anchorUUFRoles[(select(5, Utils.GetSpec()))] then
-						self.SCMAnchor.SetPoint(self, "TOPRIGHT", self.SCMAnchor, "TOPLEFT", self.SCMOffset, self.SCMYOffset)
-						if options.adjustHeight then
-							self.SCMAnchor.SetHeight(self, self.SCMHeight)
-							self.SCMAnchor.SetHeight(UUF_Player_HealthBar, self.SCMHeight - 2)
-							self.SCMAnchor.SetHeight(UUF_Player_HealthBackground, self.SCMHeight - 2)
-
-							if self.HealthPrediction then
-								if self.HealthPrediction.healAbsorb then
-									self.SCMAnchor.SetHeight(self.HealthPrediction.healAbsorb, self.SCMHeight - 2)
-								end
-
-								if self.HealthPrediction.damageAbsorb then
-									self.SCMAnchor.SetHeight(self.HealthPrediction.damageAbsorb, self.SCMHeight - 2)
-								end
-							end
-						end
-					end
-				end)
-
-				hooksecurefunc(UUF_Player, "SetSize", function(self)
-					if self.SCMAnchor and options.anchorUUF and options.anchorUUFRoles and options.anchorUUFRoles[(select(5, Utils.GetSpec()))] and options.adjustHeight then
-						self.SCMAnchor.SetHeight(self, self.SCMHeight)
-						self.SCMAnchor.SetHeight(UUF_Player_HealthBar, self.SCMHeight - 2)
-						self.SCMAnchor.SetHeight(UUF_Player_HealthBackground, self.SCMHeight - 2)
-
-						if self.HealthPrediction then
-							if self.HealthPrediction.healAbsorb then
-								self.SCMAnchor.SetHeight(self.HealthPrediction.healAbsorb, self.SCMHeight - 2)
-							end
-
-							if self.HealthPrediction.damageAbsorb then
-								self.SCMAnchor.SetHeight(self.HealthPrediction.damageAbsorb, self.SCMHeight - 2)
-							end
-						end
-					end
-				end)
-			end
-		elseif UUF_Player.SCMCustomAnchor then
-			UUF_Player:ClearAllPoints()
-			UUF_Player.SCMAnchor.SetPoint(UUF_Player, unpack(UUF_Player.SCMOriginalAnchor))
-			UUF_Player.SCMAnchor.SetHeight(UUF_Player, UUF_Player.SCMOriginalHeight)
-			UUF_Player.SCMAnchor.SetHeight(UUF_Player_HealthBar, UUF_Player.SCMOriginalHeight - 2)
-			UUF_Player.SCMAnchor.SetHeight(UUF_Player_HealthBackground, UUF_Player.SCMOriginalHeight - 2)
-
-			if UUF_Player.HealthPrediction then
-				if UUF_Player.HealthPrediction.healAbsorb then
-					UUF_Player.SCMAnchor.SetHeight(UUF_Player.HealthPrediction.healAbsorb, UUF_Player.SCMOriginalHeight - 2)
-				end
-
-				if UUF_Player.HealthPrediction.damageAbsorb then
-					UUF_Player.SCMAnchor.SetHeight(UUF_Player.HealthPrediction.damageAbsorb, UUF_Player.SCMOriginalHeight - 2)
-				end
-			end
-
-			UUF_Player.SCMCustomAnchor = nil
-			UUF_Player.SCMOffset = nil
-			UUF_Player.SCMHeight = nil
-			UUF_Player.SCMAnchor = nil
-			UUF_Player.SCMOriginalHeight = nil
-			UUF_Player.SCMOriginalAnchor = nil
-		end
-	end
-
-	if UUF_Target then
-		if options.anchorUUF and options.anchorUUFRoles and options.anchorUUFRoles[(select(5, Utils.GetSpec()))] then
-			if not UUF_Target.SCMOriginalAnchor then
-				UUF_Target.SCMOriginalAnchor = { UUF_Target:GetPoint() }
-				UUF_Target.SCMOriginalWidth = UUF_Target:GetWidth()
-				UUF_Target.SCMOriginalHeight = UUF_Target:GetHeight()
-			end
-
-			UUF_Target:ClearAllPoints()
-			mainAnchor.SetPoint(UUF_Target, "TOPLEFT", mainAnchor, "TOPRIGHT", -offset + options.temporaryPadding, options.anchorsYOffset)
-
-			UUF_Target.SCMOffset = -offset + options.temporaryPadding
-			UUF_Target.SCMYOffset = options.anchorsYOffset
-			UUF_Target.SCMHeight = height
-			UUF_Target.SCMAnchor = mainAnchor
-			UUF_Target.SCMCustomAnchor = true
-
-			if options.adjustHeight then
-				UUF_Target:SetHeight(height)
-				UUF_Target_HealthBar:SetHeight(height - 2)
-				UUF_Target_HealthBackground:SetHeight(height - 2)
-			end
-
-			if not UUF_Target.SCMHook then
-				UUF_Target.SCMHook = true
-				hooksecurefunc(UUF_Target, "SetPoint", function(self)
-					if self.SCMAnchor and options.anchorUUF and options.anchorUUFRoles and options.anchorUUFRoles[(select(5, Utils.GetSpec()))] then
-						self.SCMAnchor.SetPoint(self, "TOPLEFT", self.SCMAnchor, "TOPRIGHT", self.SCMOffset, self.SCMYOffset)
-
-						if options.adjustHeight then
-							self.SCMAnchor.SetHeight(self, self.SCMHeight)
-							self.SCMAnchor.SetHeight(UUF_Target_HealthBar, self.SCMHeight - 2)
-							self.SCMAnchor.SetHeight(UUF_Target_HealthBackground, self.SCMHeight - 2)
-						end
-					end
-				end)
-
-				hooksecurefunc(UUF_Target, "SetSize", function(self)
-					if self.SCMAnchor and options.anchorUUF and options.anchorUUFRoles and options.anchorUUFRoles[(select(5, Utils.GetSpec()))] and options.adjustHeight then
-						self.SCMAnchor.SetHeight(self, self.SCMHeight)
-						self.SCMAnchor.SetHeight(UUF_Target_HealthBar, self.SCMHeight - 2)
-						self.SCMAnchor.SetHeight(UUF_Target_HealthBackground, self.SCMHeight - 2)
-					end
-				end)
-			end
-		elseif UUF_Target.SCMCustomAnchor then
-			UUF_Target:ClearAllPoints()
-			UUF_Target.SCMAnchor.SetPoint(UUF_Target, unpack(UUF_Target.SCMOriginalAnchor))
-
-			if options.adjustHeight then
-				UUF_Target.SCMAnchor.SetHeight(UUF_Target, UUF_Target.SCMOriginalHeight)
-				UUF_Target.SCMAnchor.SetHeight(UUF_Target_HealthBar, UUF_Target.SCMOriginalHeight - 2)
-				UUF_Target.SCMAnchor.SetHeight(UUF_Target_HealthBackground, UUF_Target.SCMOriginalHeight - 2)
-			end
-
-			UUF_Target.SCMCustomAnchor = nil
-			UUF_Target.SCMOffset = nil
-			UUF_Target.SCMHeight = nil
-			UUF_Target.SCMAnchor = nil
-			UUF_Target.SCMOriginalHeight = nil
-			UUF_Target.SCMOriginalAnchor = nil
-		end
-	end
-
+function SCM:UpdateUFValues(options, maxGroupWidth, rowConfig)
 	if ElvUI then
 		local E = ElvUI[1]
-		if options.anchorElvUI then
+
+		local xOffset = min((maxGroupWidth - 150), 0)
+		local yOffset = options.anchorsYOffset
+		local padding = options.temporaryPadding
+
+		local mainAnchor = SCM:GetAnchor(1)
+		local height = floor((rowConfig[1].iconHeight or rowConfig[1].size) + 0.5) + options.anchorsHeightOffset
+		if options.anchorElvUI and options.anchorElvUIRoles[(select(5, Utils.GetSpec()))] then
+			local changed = false
 			if E.db.movers then
 				SCM.db.profile.options.elvUIAnchors["ElvUF_PlayerMover"] = SCM.db.profile.options.elvUIAnchors["ElvUF_PlayerMover"] or E.db.movers.ElvUF_PlayerMover
-				E.db.movers.ElvUF_PlayerMover = string.format("TOPRIGHT,%s,TOPLEFT,%d,%d", mainAnchor:GetName(), -offset - options.temporaryPadding, options.anchorsYOffset)
+				E.db.movers.ElvUF_PlayerMover = string.format("TOPRIGHT,%s,TOPLEFT,%d,%d", mainAnchor:GetName(), -xOffset - padding, yOffset)
 				E:SetMoverPoints("ElvUF_PlayerMover")
 
 				SCM.db.profile.options.elvUIAnchors["ElvUF_TargetMover"] = SCM.db.profile.options.elvUIAnchors["ElvUF_TargetMover"] or E.db.movers.ElvUF_TargetMover
-				E.db.movers.ElvUF_TargetMover = string.format("TOPLEFT,%s,TOPRIGHT,%d,%d", mainAnchor:GetName(), offset + options.temporaryPadding, options.anchorsYOffset)
+				E.db.movers.ElvUF_TargetMover = string.format("TOPLEFT,%s,TOPRIGHT,%d,%d", mainAnchor:GetName(), xOffset + padding, yOffset)
 				E:SetMoverPoints("ElvUF_TargetMover")
+
+				changed = changed or lastXOffset ~= xOffset or lastPadding ~= padding or lastYOffset ~= yOffset
+
+				lastPadding = padding
+				lastXOffset = xOffset
+				lastYOffset = yOffset
 			end
 
 			if options.adjustHeight then
 				E.db.unitframe.units.player.height = height
 				E.db.unitframe.units.target.height = height
+
+				changed = changed or lastHeight ~= height
+				lastHeight = height
 			end
 
-			local UF = E:GetModule("UnitFrames")
-			UF:Update_AllFrames()
+			if changed then
+				local UF = E:GetModule("UnitFrames")
+				UF:Update_AllFrames()
+			end
 		else
 			local changed = false
 			if SCM.db.profile.options.elvUIAnchors["ElvUF_PlayerMover"] then

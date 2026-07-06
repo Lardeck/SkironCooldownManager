@@ -1,15 +1,16 @@
 local SCM = select(2, ...)
 local Options = SCM.Options
 local CDMOptions = Options.CDM
+local Utils = SCM.Utils
 local AceGUI = LibStub("AceGUI-3.0")
 
 local iconTypeTabs = {
 	all = {
 		{ value = "general", text = "General" },
-		{ value = "visibility", text = "Visibility" },
 		{ value = "display", text = "Display" },
 		{ value = "cooldown", text = "Cooldown" },
-		{ value = "glow", text = "Glow" },
+		{ value = "subregion", text = "Subregions (NYI)" },
+		{ value = "state", text = "States (NYI)" },
 		{ value = "load", text = "Load Conditions" },
 	},
 	spell = {},
@@ -32,7 +33,13 @@ end
 
 function CDMOptions.CreateSpellConfigTabs(parentScrollFrame, iconSettings, buttonFrame, anchorIndex, mode, isGlobal, isBuffBar)
 	local buttonData = buttonFrame.data
-	local iconConfig = buttonData.isCustom and SCM:GetConfigTableByID(buttonData.id, buttonData.iconType, isGlobal) or SCM:GetSpellConfigForGroup(buttonData.id, anchorIndex)
+	local iconConfig
+
+	if buttonData.isCustom then
+		iconConfig = SCM:GetConfigTableByID(buttonData.id, buttonData.iconType, isGlobal, isBuffBar)
+	else
+		iconConfig = SCM:GetSpellConfigForGroup(buttonData.id, isBuffBar and Utils.ToBuffBarGroup(anchorIndex) or anchorIndex)
+	end
 
 	if not iconConfig then
 		CDMOptions.ShowIconSettingsMessage(iconSettings, parentScrollFrame, "|TInterface\\common\\help-i:40:40:0:0|tThis icon could not be resolved for the current anchor.")
@@ -77,6 +84,8 @@ function CDMOptions.CreateSpellConfigTabs(parentScrollFrame, iconSettings, butto
 				CDMOptions.CreateGlowTabSettings(self, iconSettings, parentScrollFrame, buttonFrame, buttonData, iconConfig, anchorIndex, mode, isGlobal, isBuffBar)
 			elseif group == "state" then
 				CDMOptions.CreateStateTabSettings(self, iconSettings, parentScrollFrame, buttonFrame, buttonData, iconConfig, anchorIndex, mode, isGlobal, isBuffBar)
+			elseif group == "subregion" then
+				CDMOptions.CreateSubregionTabSettings(self, iconSettings, parentScrollFrame, buttonFrame, buttonData, iconConfig, anchorIndex, mode, isGlobal, isBuffBar)
 			elseif group == "items" then
 				CDMOptions.CreateItemsTabSettings(self, iconSettings, parentScrollFrame, buttonFrame, buttonData, iconConfig, anchorIndex, mode, isGlobal, isBuffBar)
 			elseif group == "filter" then

@@ -460,14 +460,16 @@ local function UpdateCustomIconCooldown(frame, iconType, config)
 	if iconType == "slot" and config.slotID then
 		local startTime, duration = GetInventoryItemCooldown("player", config.slotID)
 		if startTime and startTime > 0 and (startTime + duration) - now >= 0.1 then
-			frame.Cooldown:SetCooldown(startTime, duration)
-
 			local globalCooldown = C_Spell.GetSpellCooldown(61304)
-			frame.Icon:SetDesaturated(not (duration == globalCooldown.duration))
+			if duration ~= globalCooldown.duration or config.showGCD then
+				frame.Cooldown:SetCooldown(startTime, duration)
 
-			UpdateCustomIconGCD(frame, config, true)
-			UpdateCustomIconGlow(frame, false)
-			return true
+				frame.Icon:SetDesaturated(not (duration == globalCooldown.duration))
+
+				UpdateCustomIconGCD(frame, config, true)
+				UpdateCustomIconGlow(frame, false)
+				return true
+			end
 		end
 	end
 

@@ -43,7 +43,7 @@ local function CreateAnchorConfigTables(customConfig)
 	return customConfig
 end
 
-local function NormalizeTrackedBarSpellConfig(spellConfig)
+local function CreateTrackedBarSpellConfig(spellConfig)
 	if type(spellConfig) ~= "table" then
 		return
 	end
@@ -138,13 +138,44 @@ local function CreateSpecFallbackConfig(config, specConfig, isActive, setSpecCon
 	return setmetatable({}, metatable)
 end
 
+local function CreateCooldownBreakpoints(options)
+	if not options.cooldownBreakpoints or #options.cooldownBreakpoints == 0 then
+		options.cooldownBreakpoints = CopyTable(SCM.Constants.CooldownTimer.DefaultBreakpoints)
+	else
+		for _, breakpoint in ipairs(options.cooldownBreakpoints) do
+			if not breakpoint.threshold then
+				breakpoint.threshold = 0
+			end
+
+			if not breakpoint.step then
+				breakpoint.step = 1
+			end
+
+			if breakpoint.components then
+				local components = breakpoint.components
+				local nextIndex = 1
+				for i = 1, 10 do
+					local component = components[i]
+					if component then
+						if i ~= nextIndex then
+							components[nextIndex] = component
+							components[i] = nil
+						end
+
+						nextIndex = nextIndex + 1
+					end
+				end
+			end
+		end
+	end
+end
+
 function SCM:UpdateDB()
 	self:MigrateLegacyGlobalConfigToProfiles()
 
 	local options = self.db.profile.options
-	if not options.cooldownBreakpoints or #options.cooldownBreakpoints == 0 then
-		options.cooldownBreakpoints = CopyTable(self.Constants.CooldownTimer.DefaultBreakpoints)
-	end
+
+	CreateCooldownBreakpoints(options)
 
 	local firstGlobalGroup = SCM.Utils.ToGlobalGroup(1)
 	local firstBuffBarGroup = SCM.Utils.ToBuffBarGroup(1)
@@ -175,7 +206,7 @@ function SCM:UpdateDB()
 	self.anchorConfig = self.currentConfig.anchorConfig
 	self.spellConfig = self.currentConfig.spellConfig
 	self:MigrateLegacySpellConfigKeys(self.spellConfig, self.defaultCooldownViewerConfig)
-	NormalizeTrackedBarSpellConfig(self.spellConfig)
+	CreateTrackedBarSpellConfig(self.spellConfig)
 	self.itemConfig = self.currentConfig.itemConfig
 
 	self.currentConfig.customConfig = self.currentConfig.customConfig or {}
