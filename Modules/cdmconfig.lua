@@ -74,6 +74,36 @@ local function CreateTrackedBarSpellConfig(spellConfig)
 	end
 end
 
+local function MigrateBuffIconStates(spellConfig)
+	for _, config in pairs(spellConfig) do
+		local buffIconGroup = config.source[Enum.CooldownViewerCategory.TrackedBuff] or config.source[Enum.CooldownViewerCategory.TrackedBars]
+		if buffIconGroup then
+			local anchorGroupConfig = config.anchorGroup[buffIconGroup]
+			if anchorGroupConfig and not anchorGroupConfig.selectedStates then
+				anchorGroupConfig.usedStates = {
+					active = true,
+					inactive = true,
+				}
+				anchorGroupConfig.selectedStates = { "active", "inactive" }
+				anchorGroupConfig.stateOptions = {
+					active = {
+						selectedOptions = { "visibility" },
+						visibility = {
+							value = "show",
+						},
+					},
+					inactive = {
+						selectedOptions = { "visibility" },
+						visibility = {
+							value = "hide",
+						},
+					},
+				}
+			end
+		end
+	end
+end
+
 local function CreateSpecFallbackConfig(config, specConfig, isActive, setSpecConfig)
 	config = config or {}
 	setSpecConfig = setSpecConfig or nop
@@ -207,6 +237,7 @@ function SCM:UpdateDB()
 	self.spellConfig = self.currentConfig.spellConfig
 	self:MigrateLegacySpellConfigKeys(self.spellConfig, self.defaultCooldownViewerConfig)
 	CreateTrackedBarSpellConfig(self.spellConfig)
+	MigrateBuffIconStates(self.spellConfig)
 	self.itemConfig = self.currentConfig.itemConfig
 
 	self.currentConfig.customConfig = self.currentConfig.customConfig or {}

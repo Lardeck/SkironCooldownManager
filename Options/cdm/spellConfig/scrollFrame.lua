@@ -105,7 +105,6 @@ local function GetSpellsForAnchor(anchorIndex, currentAnchorIndex, isGlobal, isB
 	end
 
 	table.sort(spells, SortByOrder)
-
 	return spells
 end
 
@@ -117,12 +116,6 @@ function CDMOptions.CreateSpellConfigScrollFrame(anchorIndex, mode, spellConfigT
 	local scrollFrame = AceGUI:Create("SCMHorizontalScrollFrame")
 	scrollFrame:SetHeight(86)
 	scrollFrame:SetFullWidth(true)
-	scrollFrame.scrollbar:ClearAllPoints()
-	scrollFrame.scrollbar:SetPoint("BOTTOMLEFT", scrollFrame.frame, "BOTTOMLEFT")
-	scrollFrame.scrollbar:SetPoint("BOTTOMRIGHT", scrollFrame.frame, "BOTTOMRIGHT")
-	scrollFrame.scrollBox:ClearAllPoints()
-	scrollFrame.scrollBox:SetPoint("TOPLEFT", scrollFrame.frame, "TOPLEFT")
-	scrollFrame.scrollBox:SetPoint("BOTTOMRIGHT", scrollFrame.scrollbar, "TOPRIGHT", 0, 2)
 
 	scrollFrame:SetSortComparator(SortByIndex)
 

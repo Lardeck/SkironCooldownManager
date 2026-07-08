@@ -2,6 +2,7 @@ local SCM = select(2, ...)
 local AceGUI = LibStub("AceGUI-3.0")
 local LSM = LibStub("LibSharedMedia-3.0")
 local Constants = SCM.Constants
+local Options = SCM.Options
 
 SCM.MainTabs.CastBar = { value = "CastBar", text = "Cast Bar", order = 6, subgroups = {} }
 
@@ -47,6 +48,7 @@ local function AddAnchorControls(parent, title, anchors, refreshFn, relativeFram
 		refreshFn()
 	end)
 	anchorGroup:AddChild(relativeTo)
+	Options.AddAnchorParentAutocomplete(anchorGroup, relativeTo, function(text) anchors[2] = text ~= "" and text or nil refreshFn() end)
 
 	local point = AceGUI:Create("Dropdown")
 	point:SetRelativeWidth(0.5)

@@ -4,6 +4,7 @@ local Icons = SCM.Icons
 local Cache = SCM.Cache
 local Utils = SCM.Utils
 local Constants = SCM.Constants
+local States = SCM.States
 local AddChildToGroup = Utils.AddChildToGroup
 local GetSpellConfigByCooldownID = Utils.GetSpellConfigByCooldownID
 local Cooldowns = SCM.Cooldowns
@@ -87,6 +88,10 @@ function Icons.ShowChild(child)
 end
 
 function Icons.SetChildVisibilityState(child, shouldShow, applyNow)
+	if child.SCMSpellID == 77758 then
+		print("SHOULD SHOW", shouldShow, applyNow)
+	end
+
 	child.SCMShouldBeVisible = shouldShow and true or false
 	if not applyNow then
 		return
@@ -116,15 +121,19 @@ function Icons.SetChildVisibilityState(child, shouldShow, applyNow)
 	end
 end
 
-function Icons.UpdateChildDesaturation(child, shouldDesaturate)
+function Icons.UpdateChildDesaturation(child, shouldDesaturate, forceDesaturation)
+	if child.SCMSpellID == 77758 then
+		print(2, "DESATURATE", shouldDesaturate, forceDesaturation)
+	end
+
 	if child.Icon and child.SCMConfig and child.SCMSpellID then
-		if child.SCMConfig.desaturate then
+		if forceDesaturation then
 			child.Icon.SCMDesaturated = shouldDesaturate
-			child.Icon:SetDesaturated(shouldDesaturate)
 		else
-			child.Icon.SCMDesaturated = false
-			child.Icon:SetDesaturated(false)
+			child.Icon.SCMDesaturated = nil
 		end
+
+		child.Icon:SetDesaturated(shouldDesaturate)
 	end
 end
 
@@ -190,7 +199,7 @@ end
 
 local function OnSetDesaturated(iconTexture)
 	local parent = iconTexture:GetParent()
-	if not parent.SCMCustom and not iconTexture.SCMSkipUpdate and iconTexture.SCMDesaturated then
+	if not parent.SCMCustom and not iconTexture.SCMSkipUpdate and iconTexture.SCMDesaturated ~= nil then
 		iconTexture.SCMSkipUpdate = true
 		iconTexture:SetDesaturated(iconTexture.SCMDesaturated)
 		iconTexture.SCMSkipUpdate = nil
@@ -380,7 +389,8 @@ end
 local function ProcessRegularIcon(child, childData, options)
 	Icons.SetupRegularIconHooks(child)
 
-	local shouldShow = not (childData.hideWhenNotOnCooldown and not Cooldowns.GetChildCooldown(child))
+	local state = child.SCMState
+	local shouldShow = not state or state.Visibility
 	local applyNow = child.SCMShouldBeVisible ~= shouldShow
 	child.SCMChanged = child.SCMChanged or applyNow
 	Icons.SetChildVisibilityState(child, shouldShow, applyNow)

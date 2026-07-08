@@ -323,7 +323,7 @@ function CDMOptions.SelectRow(widget, rowWidget, parentWidget, scrollFrame, data
 
 	local iconWidth = AceGUI:Create("Slider")
 	iconWidth:SetRelativeWidth(0.33)
-	iconWidth:SetSliderValues(10, isBuffBar and 500 or 200, 0.1)
+	iconWidth:SetSliderValues(3, isBuffBar and 500 or 200, 0.1)
 	iconWidth:SetLabel(widthLabel)
 	iconWidth:SetDisabled(data.matchAnchorWidth)
 	iconWidth:SetValue(rowConfig.iconWidth or rowConfig.size)
@@ -332,7 +332,7 @@ function CDMOptions.SelectRow(widget, rowWidget, parentWidget, scrollFrame, data
 
 	local iconHeight = AceGUI:Create("Slider")
 	iconHeight:SetRelativeWidth(0.33)
-	iconHeight:SetSliderValues(10, 200, 0.1)
+	iconHeight:SetSliderValues(3, 200, 0.1)
 	iconHeight:SetLabel(heightLabel)
 	iconHeight:SetValue(rowConfig.iconHeight or rowConfig.size)
 	iconHeight:SetCallback("OnValueChanged", function(self, event, value)

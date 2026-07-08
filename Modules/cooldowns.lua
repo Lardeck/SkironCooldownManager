@@ -4,6 +4,7 @@ local Cooldowns = SCM.Cooldowns
 local Icons = SCM.Icons
 local Cache = SCM.Cache
 local Constants = SCM.Constants
+local States = SCM.States
 
 local NumericRuleFormatter = C_StringUtil.CreateNumericRuleFormatter()
 Cooldowns.NumericRuleFormatter = NumericRuleFormatter
@@ -27,21 +28,7 @@ local function SetBuffActive(parent)
 	end
 
 	parent.SCMActive = true
-
-	if not parent.SCMHidden or (not SCM.isHideWhenInactiveEnabled and parent.SCMConfig.alwaysShow) then
-		Icons.UpdateChildDesaturation(parent, false)
-		Icons.UpdateChildGlow(parent, false)
-
-		if parent.SCMConfig.showWhileInactive then
-			Icons.HideChild(parent)
-			SCM:ApplyAnchorGroupCDManagerConfig(parent.SCMGroup, nil, parent.viewerFrame and parent.viewerFrame.SCMUpdateScope)
-		end
-	elseif parent.SCMHidden then
-		Icons.ShowChild(parent)
-		Icons.UpdateChildDesaturation(parent, false)
-		Icons.UpdateChildGlow(parent, false)
-		SCM:ApplyAnchorGroupCDManagerConfig(parent.SCMGroup, nil, parent.viewerFrame and parent.viewerFrame.SCMUpdateScope)
-	end
+	States.SetActiveState(parent, true)
 end
 
 local function SetBuffInactive(parent, isActiveState)
@@ -53,19 +40,7 @@ local function SetBuffInactive(parent, isActiveState)
 
 	parent.SCMFixedDuration = nil
 	parent.SCMActive = nil
-
-	Icons.UpdateChildGlow(parent, true)
-
-	if not SCM.isHideWhenInactiveEnabled and parent.SCMConfig.alwaysShow then
-		Icons.UpdateChildDesaturation(parent, true)
-		return
-	end
-
-	-- print("INACTIVE", parent.SCMSpellID, C_Spell.GetSpellName(parent.SCMSpellID), parent.SCMHidden)
-	--local options = parent.SCMBuffOptions
-	if not parent.SCMHidden or (parent.SCMHidden and parent.SCMConfig.showWhileInactive) then
-		SCM:ApplyAnchorGroupCDManagerConfig(parent.SCMGroup, nil, parent.viewerFrame and parent.viewerFrame.SCMUpdateScope)
-	end
+	States.SetActiveState(parent, false)
 end
 
 local function OnBuffActiveStateChanged(self)
@@ -208,6 +183,10 @@ function Cooldowns.SetupBuffIconHooks(child, options)
 end
 
 function Cooldowns.GetChildCooldown(child)
+	if not child.SCMSpellID then
+		return
+	end
+
 	local cooldownData = SCM.defaultCooldownViewerConfig.cooldownIDs[child.SCMCooldownID]
 
 	local durationObject
@@ -323,8 +302,9 @@ local function OnRegularCooldownChanged(self, changeType)
 	end
 
 	local options = SCM.db.profile.options
+	local config = parent.SCMConfig
 	local useAuraDisplayTime = self:GetUseAuraDisplayTime()
-	if options.disableRegularIconActiveSwipe and not parent.SCMConfig.forceActiveSwipe and useAuraDisplayTime then
+	if options.disableRegularIconActiveSwipe and not config.forceActiveSwipe and useAuraDisplayTime then
 		Cooldowns.OverrideRegularAuraCooldown(self, parent, options)
 	elseif options.disableGCD or (changeType == "CLEAR" and Constants.FixBlizzardSpells[parent.SCMSpellID]) then
 		Cooldowns.SetNormalCooldown(self, parent)
@@ -333,23 +313,11 @@ local function OnRegularCooldownChanged(self, changeType)
 		parent.Icon:SetDesaturated(false)
 	end
 
-	local config = parent.SCMConfig
-	if config.hideWhenNotOnCooldown then
-		local shouldShow = Cooldowns.GetChildCooldown(parent) and true or false
-		if parent.SCMShouldBeVisible ~= shouldShow then
-			local viewer = parent.viewerFrame
-			if viewer then
-				if viewer == EssentialCooldownViewer then
-					SCM:ApplyEssentialCDManagerConfig()
-				elseif viewer == UtilityCooldownViewer then
-					SCM:ApplyUtilityCDManagerConfig()
-				end
-			elseif parent.SCMGroup then
-				SCM:ApplyAnchorGroupCDManagerConfig(parent.SCMGroup, parent.SCMGlobal)
-			else
-				SCM:ApplyAllCDManagerConfigs()
-			end
-		end
+	if config.stateOptions then
+		RunNextFrame(function()
+			States.SetActiveState(parent, useAuraDisplayTime)
+			States.SetCooldownState(parent, Cooldowns.GetChildCooldown(parent))
+		end)
 	end
 
 	Icons.UpdateChildGlow(parent, not useAuraDisplayTime)

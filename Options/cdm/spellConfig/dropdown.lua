@@ -446,7 +446,7 @@ local function ProcessAndCreateButtons(parentButton, items, isBuffIcon, scrollFr
 			info.category = data.category
 
 			local activeColor = (type(data.category) == "number" and data.category < 0 and colorDisabled) or (info.isKnown and colorKnown) or colorUnknown
-			parentButton:CreateButton(string.format("|T%d:0|t |cff%s%s (%d)|r", C_Spell.GetSpellTexture(info.spellID), activeColor, C_Spell.GetSpellName(info.spellID), info.spellID), function(info)
+			local button = parentButton:CreateButton(string.format("|T%d:0|t |cff%s%s (%d)|r", C_Spell.GetSpellTexture(info.spellID), activeColor, C_Spell.GetSpellName(info.spellID), info.spellID), function(info)
 				if not CDMOptions.IsSpellInData(info.cooldownID, info.category) and not DoesScrollFrameContainSpellConfig(scrollFrame, info.configID, info.cooldownID) then
 					local dataIndex = scrollFrame:AddSpellBySpellID(info)
 					SCM:AddSpellToConfig(anchorIndex, dataIndex, info, data, item.targetCategory, isBuffIcon)
@@ -454,6 +454,9 @@ local function ProcessAndCreateButtons(parentButton, items, isBuffIcon, scrollFr
 				end
 				return MenuResponse.Open
 			end, info)
+			button:SetTooltip(function(tooltip, elementDescription)
+				tooltip:SetSpellByID(info.spellID)
+			end)
 		end
 	end
 end

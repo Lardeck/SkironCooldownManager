@@ -45,10 +45,10 @@ local function GetUnusedStates(iconConfig)
 	return states, statesSorted
 end
 
-local function BuildUsedStateTabs(iconConfig)
+local function GetUsedStateTabs(iconConfig)
 	local stateTabs = {}
 
-	for _, stateValue in ipairs(Constants.StatesSorted) do
+	for _, stateValue in ipairs(iconConfig.selectedStates) do
 		if iconConfig.usedStates[stateValue] then
 			tinsert(stateTabs, { value = stateValue, text = Constants.States[stateValue] })
 		end
@@ -128,7 +128,7 @@ local function AddSelectedStateOption(stateTabs, state, stateOptions, selectedOp
 
 	if option.toggle then
 		local toggle = AceGUI:Create("CheckBox")
-		toggle:SetRelativeWidth(0.67)
+		toggle:SetRelativeWidth(0.66)
 		toggle:SetLabel(option.name)
 		toggle:SetValue(optionValues.enabled)
 		toggle:SetCallback("OnValueChanged", function(_, _, value)
@@ -144,7 +144,7 @@ local function AddSelectedStateOption(stateTabs, state, stateOptions, selectedOp
 
 		local subregionDropdown = AceGUI:Create("Dropdown")
 		subregionDropdown:SetLabel("Subregion")
-		subregionDropdown:SetRelativeWidth(0.67)
+		subregionDropdown:SetRelativeWidth(0.66)
 		subregionDropdown:SetList(subregions, subregionsSorted)
 		subregionDropdown:SetValue(optionValues.subregion)
 		subregionDropdown:SetCallback("OnValueChanged", function(_, _, value)
@@ -154,7 +154,7 @@ local function AddSelectedStateOption(stateTabs, state, stateOptions, selectedOp
 	else
 		local valueDropdown = AceGUI:Create("Dropdown")
 		valueDropdown:SetLabel(option.name)
-		valueDropdown:SetRelativeWidth(0.67)
+		valueDropdown:SetRelativeWidth(0.66)
 		valueDropdown:SetList(option.options, option.optionsSorted)
 		valueDropdown:SetValue(optionValues.value)
 		valueDropdown:SetCallback("OnValueChanged", function(_, _, value)
@@ -200,8 +200,15 @@ local function AddStateOptions(state, stateTabs, iconConfig, stateDropdown)
 		iconConfig.usedStates[state] = nil
 		iconConfig.stateOptions[state] = nil
 
+		for stateIndex, stateValue in ipairs(iconConfig.selectedStates) do
+			if stateValue == state then
+				tremove(iconConfig.selectedStates, stateIndex)
+				break
+			end
+		end
+
 		stateDropdown:SetList(GetUnusedStates(iconConfig))
-		local usedStateTabs = BuildUsedStateTabs(iconConfig)
+		local usedStateTabs = GetUsedStateTabs(iconConfig)
 		stateTabs:SetTabs(usedStateTabs)
 
 		if usedStateTabs[1] then
@@ -217,6 +224,7 @@ function CDMOptions.CreateStateTabSettings(iconSettingsTabs, iconSettings, paren
 	if not isBuffBar then
 		iconConfig.stateOptions = iconConfig.stateOptions or {}
 		iconConfig.usedStates = iconConfig.usedStates or {}
+		iconConfig.selectedStates = iconConfig.selectedStates or {}
 
 		local rootGroup = AceGUI:Create("SimpleGroup")
 		rootGroup:SetLayout("fill")
@@ -256,7 +264,7 @@ function CDMOptions.CreateStateTabSettings(iconSettingsTabs, iconSettings, paren
 		end)
 
 		local stateTabs = AceGUI:Create("TabGroup")
-		local usedStateTabs = BuildUsedStateTabs(iconConfig)
+		local usedStateTabs = GetUsedStateTabs(iconConfig)
 		stateTabs:SetLayout("flow")
 		stateTabs:SetFullWidth(true)
 		stateTabs:SetTabs(usedStateTabs)
@@ -276,8 +284,9 @@ function CDMOptions.CreateStateTabSettings(iconSettingsTabs, iconSettings, paren
 
 			iconConfig.usedStates[selectedState] = true
 			iconConfig.stateOptions[selectedState] = iconConfig.stateOptions[selectedState] or {}
+			tinsert(iconConfig.selectedStates, selectedState)
 
-			stateTabs:SetTabs(BuildUsedStateTabs(iconConfig))
+			stateTabs:SetTabs(GetUsedStateTabs(iconConfig))
 			stateTabs:SelectTab(selectedState)
 			selectedState = nil
 			stateDropdown:SetValue(selectedState)

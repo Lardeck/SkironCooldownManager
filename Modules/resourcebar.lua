@@ -1750,6 +1750,10 @@ function SCMResourceBarControllerMixin:Initialize()
 	self:RegisterResourceBarEvents()
 	EventRegistry:RegisterCallback(ANCHOR_PROXY_SIZE_CHANGED_EVENT, function(_, proxyGroup, proxy, width, height, selectedAnchorRef, isActiveProxy)
 		local barOptions = SCM.resourceBarConfig
+		if not barOptions then
+			return
+		end
+
 		local primaryBarOptions = barOptions.primaryBar
 		local secondaryBarOptions = barOptions.secondaryBar
 		local primaryMatchesAnchor = primaryBarOptions.enabled and primaryBarOptions.matchAnchorWidth
@@ -1770,7 +1774,7 @@ end
 function SCM:InitializeResourceBars()
 	local container = _G[RESOURCE_BAR_FRAME_NAME]
 	local barOptions = self.resourceBarConfig
-	if not container or container.SCMResourceBarInitialized or not barOptions.enabled then
+	if not container or container.SCMResourceBarInitialized or not (barOptions and barOptions.enabled) then
 		return
 	end
 
@@ -1833,7 +1837,7 @@ end
 
 function SCM:RefreshResourceBarConfig(refreshTicks, optionsChanged)
 	local container = _G[RESOURCE_BAR_FRAME_NAME]
-	if not container then
+	if not container or not self.resourceBarConfig then
 		return
 	end
 

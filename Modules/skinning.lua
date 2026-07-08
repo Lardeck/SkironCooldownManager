@@ -440,11 +440,13 @@ function SCM:SkinBuffBar(child, config)
 		bar.Name:ClearPointsOffset()
 		bar.Name:AdjustPointsOffset(buffBarOptions.nameXOffset, buffBarOptions.nameYOffset)
 		bar.Name:SetTextColor(nameColor.r, nameColor.g, nameColor.b, nameColor.a)
+		bar.Name:SetShown(not buffBarOptions.hideSpellName)
 
 		local durationColor = buffBarOptions.durationColor
 		bar.Duration:ClearPointsOffset()
 		bar.Duration:AdjustPointsOffset(buffBarOptions.durationXOffset, buffBarOptions.durationYOffset)
 		bar.Duration:SetTextColor(durationColor.r, durationColor.g, durationColor.b, durationColor.a)
+		bar.Duration:SetShown(not buffBarOptions.hideDuration)
 
 		bar.customBorder = bar.customBorder or CreateFrame("Frame", nil, bar, "BackdropTemplate")
 		bar.customBorder:SetFrameLevel(bar:GetFrameLevel() + 1)

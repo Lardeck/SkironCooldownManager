@@ -163,3 +163,13 @@ Constants.SatedDebuffs = {
 	[264689] = true,
 	[390435] = true,
 }
+
+Constants.SCMAnchors = {
+	["SkironCooldownManager"] = {
+		["Cast Bar"] = "SCM_CastBar",
+		["Primary Resource Bar"] = "SCM_PrimaryResourceBar",
+		["Secondary Resource Bar"] = "SCM_SecondaryResourceBar",
+		["Anchor"] = "SCM_GroupAnchor_#",
+		["Global Anchor"] = "SCM_GroupAnchor_10#"
+	},
+}

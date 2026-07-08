@@ -2,6 +2,7 @@ local SCM = select(2, ...)
 local AceGUI = LibStub("AceGUI-3.0")
 local LSM = LibStub("LibSharedMedia-3.0")
 local Constants = SCM.Constants
+local Options = SCM.Options
 local RESOURCE_BAR_POWER_TYPES = SCM.Constants.ResourceBarPowerTypes
 
 SCM.MainTabs.ResourceBar = { value = "ResourceBar", text = "Resource Bar", order = 5, subgroups = {} }
@@ -227,6 +228,7 @@ local function AddPositionSettings(parent, settings)
 		RefreshResourceBars()
 	end)
 	positionSettings:AddChild(anchorFrame)
+	Options.AddAnchorParentAutocomplete(positionSettings, anchorFrame, function(text) settings.anchorFrame = (text and text ~= "" and text) or "ANCHOR:1" RefreshResourceBars() end)
 
 	local relativePoint = AceGUI:Create("Dropdown")
 	relativePoint:SetRelativeWidth(0.33)
