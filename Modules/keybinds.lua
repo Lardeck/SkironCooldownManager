@@ -51,8 +51,12 @@ end
 
 -- ── Key abbreviation ──────────────────────────────────────────────────────────
 
+local abbrevCache = {}
 local function AbbreviateKey(key)
     if not key or key == "" then return "" end
+    local cached = abbrevCache[key]
+    if cached then return cached end
+    local orig = key
     key = key:upper()
 
     key = key:gsub("MOUSE%s*WHEEL%s*UP",   "MWUP")
@@ -87,6 +91,7 @@ local function AbbreviateKey(key)
     else
         key = key:gsub("%-", "")
     end
+    abbrevCache[orig] = key
     return key
 end
 
@@ -435,7 +440,8 @@ local function BuildKeyMap()
                     StoreSpell(keyCache, spellID, m.fmt, true)
                 end
 
-                local hasSlash = body:lower():find("/cast", 1, true) or body:lower():find("/castsequence", 1, true)
+                local bodyLower = body:lower()
+                local hasSlash = bodyLower:find("/cast", 1, true) or bodyLower:find("/castsequence", 1, true)
                 local tokens   = ExtractUseTokens(body)
                 if tokens then
                     for _, tok in ipairs(tokens) do
@@ -654,15 +660,28 @@ local function ScheduleRebuild(delay)
     end)
 end
 
+-- Debounced RefreshAllFrames, for hooks that can fire many times back-to-back
+-- (e.g. one CreateSpellIcon/CreateItemIcon call per icon while the whole icon
+-- set is built on first login). Coalesces a burst of calls into a single scan
+-- instead of running the full frame scan once per call.
+local refreshTimer = nil
+local function ScheduleRefresh()
+    if refreshTimer or not enabled then return end
+    refreshTimer = C_Timer.NewTimer(0.05, function()
+        refreshTimer = nil
+        Keybinds.RefreshAllFrames()
+    end)
+end
+
 local eventFrame = CreateFrame("Frame")
 eventFrame:SetScript("OnEvent", function(_, event, arg1, arg2)
     -- Always-on: deferred hook registration and initial setup on first login/reload
     if event == "PLAYER_ENTERING_WORLD" then
         if not extraHooksSet then
             extraHooksSet = true
-            hooksecurefunc(SCM, "ApplyAllCDManagerConfigs",     Keybinds.RefreshAllFrames)
-            hooksecurefunc(SCM, "ApplyEssentialCDManagerConfig", Keybinds.RefreshAllFrames)
-            hooksecurefunc(SCM, "ApplyUtilityCDManagerConfig",   Keybinds.RefreshAllFrames)
+            hooksecurefunc(SCM, "ApplyAllCDManagerConfigs",     ScheduleRefresh)
+            hooksecurefunc(SCM, "ApplyEssentialCDManagerConfig", ScheduleRefresh)
+            hooksecurefunc(SCM, "ApplyUtilityCDManagerConfig",   ScheduleRefresh)
         end
         if arg1 or arg2 then  -- isInitialLogin or isReload
             Keybinds.OnSettingChanged()
@@ -705,7 +724,7 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, arg2)
     or event == "PLAYER_EQUIPMENT_CHANGED"
     or event == "UPDATE_MACROS" then
         ClearKeyCache()
-    elseif (event == "UPDATE_BINDINGS" or event == "ACTIONBAR_HIDEGRID") and not IsInOverrideBar() then
+    elseif (event == "UPDATE_BINDINGS" or event == "ACTIONBAR_HIDEGRID" or event == "ACTIONBAR_SLOT_CHANGED") and not IsInOverrideBar() then
         ClearKeyCache()
     end
 
@@ -721,6 +740,7 @@ function Keybinds.Enable()
     eventFrame:RegisterEvent("UPDATE_BINDINGS")
     eventFrame:RegisterEvent("UPDATE_MACROS")
     eventFrame:RegisterEvent("ACTIONBAR_HIDEGRID")
+    eventFrame:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
     eventFrame:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
     eventFrame:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
     eventFrame:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
@@ -768,14 +788,18 @@ end
 -- ── Bootstrap ─────────────────────────────────────────────────────────────────
 
 -- Re-apply keybinds after any full viewer rebuild (profile/spec/scale changes).
-hooksecurefunc(SCM, "RefreshCooldownViewerData", Keybinds.RefreshAllFrames)
+-- Debounced: can fire once per icon while the whole viewer is rebuilt on login.
+hooksecurefunc(SCM, "RefreshCooldownViewerData", ScheduleRefresh)
 
 -- Force a bar rescan when a custom icon is added so the new spell's keybind is found.
-hooksecurefunc(SCM, "AddCustomIcon", Keybinds.Rebuild)
+-- Debounced: restoring a saved profile can call this once per custom icon.
+hooksecurefunc(SCM, "AddCustomIcon", function() ScheduleRebuild() end)
 
 -- Spell/item data may load asynchronously after AddCustomIcon; apply once the frame exists.
-hooksecurefunc(SCM.CustomIcons, "CreateSpellIcon", Keybinds.RefreshAllFrames)
-hooksecurefunc(SCM.CustomIcons, "CreateItemIcon",  Keybinds.RefreshAllFrames)
+-- Debounced: fires once per icon, so bulk icon creation on first login collapses
+-- into a single scan instead of one full RefreshAllFrames per icon.
+hooksecurefunc(SCM.CustomIcons, "CreateSpellIcon", ScheduleRefresh)
+hooksecurefunc(SCM.CustomIcons, "CreateItemIcon",  ScheduleRefresh)
 
 -- Keep PLAYER_ENTERING_WORLD registered at all times so it survives Disable().
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
