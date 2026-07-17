@@ -759,6 +759,15 @@ local function ApplyGlobalSettings(frame)
 	end
 end
 
+function CustomIcons.ForEachActiveFrame(callback)
+	for _, frame in pairs(CustomItemFrames) do
+		if not frame.SCMReleased then callback(frame) end
+	end
+	for _, frame in pairs(CustomSpellFrames) do
+		if not frame.SCMReleased then callback(frame) end
+	end
+end
+
 function CustomIcons.HideIcons()
 	for _, customFrame in pairs(CustomItemFrames) do
 		Icons.SetChildVisibilityState(customFrame, false, true)

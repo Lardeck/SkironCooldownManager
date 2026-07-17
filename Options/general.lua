@@ -383,7 +383,6 @@ local function SelectGlobalSettingsTab(tabWidget, scrollFrame, group, options)
 			SCM:ApplyAttributeDriver()
 			SCM:CreateAllCustomIcons()
 		end)
-
 		local auraSettings = AceGUI:Create("InlineGroup")
 		auraSettings:SetLayout("flow")
 		auraSettings:SetFullWidth(true)
@@ -1146,6 +1145,124 @@ local function SelectGlobalSettingsTab(tabWidget, scrollFrame, group, options)
 
 			replaceWithBorder:SetDisabled(value)
 		end)
+	elseif group == "Keybinds" then
+		local kb = options.keybinds
+
+		local mainGroup = AceGUI:Create("InlineGroup")
+		mainGroup:SetLayout("flow")
+		mainGroup:SetFullWidth(true)
+		mainGroup:SetTitle("Keybinds")
+		tabWidget:AddChild(mainGroup)
+
+		local enabled = AceGUI:Create("CheckBox")
+		enabled:SetRelativeWidth(1.0)
+		enabled:SetLabel("Show keybinds on cooldown icons")
+		enabled:SetValue(kb.enabled)
+		enabled:SetCallback("OnValueChanged", function(_, _, value)
+			kb.enabled = value
+			SCM.Keybinds.OnSettingChanged()
+		end)
+		mainGroup:AddChild(enabled)
+
+		local posGroup = AceGUI:Create("InlineGroup")
+		posGroup:SetLayout("flow")
+		posGroup:SetFullWidth(true)
+		posGroup:SetTitle("Position")
+		tabWidget:AddChild(posGroup)
+
+		local anchorPoints = {
+			TOPLEFT = "Top Left", TOP = "Top", TOPRIGHT = "Top Right",
+			LEFT = "Left", CENTER = "Center", RIGHT = "Right",
+			BOTTOMLEFT = "Bottom Left", BOTTOM = "Bottom", BOTTOMRIGHT = "Bottom Right",
+		}
+		local anchorOrder = {
+			"TOPLEFT","TOP","TOPRIGHT","LEFT","CENTER","RIGHT","BOTTOMLEFT","BOTTOM","BOTTOMRIGHT",
+		}
+
+		local anchor = AceGUI:Create("Dropdown")
+		anchor:SetRelativeWidth(0.33)
+		anchor:SetLabel("Anchor")
+		anchor:SetList(anchorPoints, anchorOrder)
+		anchor:SetValue(kb.anchor)
+		anchor:SetCallback("OnValueChanged", function(_, _, value)
+			kb.anchor = value
+			if SCM.Keybinds then SCM.Keybinds.RefreshAllFrames() end
+		end)
+		posGroup:AddChild(anchor)
+
+		local xOffset = AceGUI:Create("Slider")
+		xOffset:SetRelativeWidth(0.33)
+		xOffset:SetLabel("X Offset")
+		xOffset:SetSliderValues(-30, 30, 0.5)
+		xOffset:SetValue(kb.offsetX)
+		xOffset:SetCallback("OnValueChanged", function(_, _, value)
+			kb.offsetX = value
+			if SCM.Keybinds then SCM.Keybinds.RefreshAllFrames() end
+		end)
+		posGroup:AddChild(xOffset)
+
+		local yOffset = AceGUI:Create("Slider")
+		yOffset:SetRelativeWidth(0.33)
+		yOffset:SetLabel("Y Offset")
+		yOffset:SetSliderValues(-30, 30, 0.5)
+		yOffset:SetValue(kb.offsetY)
+		yOffset:SetCallback("OnValueChanged", function(_, _, value)
+			kb.offsetY = value
+			if SCM.Keybinds then SCM.Keybinds.RefreshAllFrames() end
+		end)
+		posGroup:AddChild(yOffset)
+
+		local fontGroup = AceGUI:Create("InlineGroup")
+		fontGroup:SetLayout("flow")
+		fontGroup:SetFullWidth(true)
+		fontGroup:SetTitle("Text")
+		tabWidget:AddChild(fontGroup)
+
+		local font = AceGUI:Create("LSM30_Font")
+		font:SetLabel("Font")
+		font:SetRelativeWidth(0.33)
+		font:SetList(LSM:HashTable("font"))
+		font:SetValue(kb.fontName)
+		font:SetCallback("OnValueChanged", function(self, _, value)
+			kb.fontName = value
+			self:SetValue(value)
+			if SCM.Keybinds then SCM.Keybinds.RefreshAllFrames() end
+		end)
+		fontGroup:AddChild(font)
+
+		local fontSize = AceGUI:Create("Slider")
+		fontSize:SetRelativeWidth(0.33)
+		fontSize:SetLabel("Font Size")
+		fontSize:SetSliderValues(6, 24, 1)
+		fontSize:SetValue(kb.fontSize)
+		fontSize:SetCallback("OnValueChanged", function(_, _, value)
+			kb.fontSize = value
+			if SCM.Keybinds then SCM.Keybinds.RefreshAllFrames() end
+		end)
+		fontGroup:AddChild(fontSize)
+
+		local fontFlags = AceGUI:Create("Dropdown")
+		fontFlags:SetRelativeWidth(0.33)
+		fontFlags:SetLabel("Outline")
+		fontFlags:SetList({ [""] = "None", ["OUTLINE"] = "Outline", ["THICKOUTLINE"] = "Thick" })
+		fontFlags:SetValue(kb.fontFlags)
+		fontFlags:SetCallback("OnValueChanged", function(_, _, value)
+			kb.fontFlags = value
+			if SCM.Keybinds then SCM.Keybinds.RefreshAllFrames() end
+		end)
+		fontGroup:AddChild(fontFlags)
+
+		local color = AceGUI:Create("ColorPicker")
+		color:SetRelativeWidth(0.33)
+		color:SetLabel("Color")
+		color:SetHasAlpha(true)
+		color:SetColor(kb.color[1], kb.color[2], kb.color[3], kb.color[4])
+		color:SetCallback("OnValueChanged", function(_, _, r, g, b, a)
+			kb.color = { r, g, b, a }
+			if SCM.Keybinds then SCM.Keybinds.RefreshAllFrames() end
+		end)
+		fontGroup:AddChild(color)
+
 	elseif group == "BuffBar" then
 		local buffBarOptions = options.buffBarOptions
 

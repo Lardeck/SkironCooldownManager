@@ -48,6 +48,7 @@ Modules\skinning.lua
 Modules\elvui_skin.lua
 Modules\utils.lua
 Modules\customicons.lua
+Modules\keybinds.lua
 Modules\migration.lua
 Modules\cooldowns.lua
 Modules\icons.lua

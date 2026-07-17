@@ -476,6 +476,16 @@ SCM.DefaultDB = {
 					anchors = { "RIGHT", "RIGHT", -3, 0 },
 				},
 			},
+			keybinds = {
+				enabled   = false,
+				anchor    = "TOPRIGHT",
+				offsetX   = -1,
+				offsetY   = -1,
+				fontSize  = 11,
+				fontName  = "Expressway",
+				fontFlags = "OUTLINE",
+				color     = { 1, 1, 1, 1 },
+			},
 			testSetting = {
 				[193063] = false,
 			},
@@ -496,4 +506,5 @@ SCM.Defaults.GlobalSettingsTabs = {
 	{ value = "Icons", text = "Icons" },
 	{ value = "Glow", text = "Glow" },
 	{ value = "BuffBar", text = "Buff Bars" },
+	{ value = "Keybinds", text = "Keybinds" },
 }
