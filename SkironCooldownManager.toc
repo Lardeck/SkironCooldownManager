@@ -3,7 +3,7 @@
 ## Author: Permok
 ## Version: @project-version@
 ## SavedVariables: SkironCooldownManagerDB
-## OptionalDeps: Plater, Details, UnhaltedUnitFrames, CooldownViewer, SenseiClassResourceBar, ElvUI, EllesmereUIUnitFrames, BetterActionBars
+## OptionalDeps: Plater, Details, UnhaltedUnitFrames, CooldownViewer, SenseiClassResourceBar, ElvUI, EllesmereUIUnitFrames, BetterBars
 ## IconTexture: Interface\AddOns\SkironCooldownManager\Media\Logo.png
 ## X-Curse-Project-ID: 1453035
 ## X-Wago-ID: O67DaZK3
