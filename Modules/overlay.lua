@@ -1,6 +1,6 @@
 local SCM = select(2, ...)
 local Cache = SCM.Cache
-local LibActionButton = LibStub("LibActionButton-1.0", true) or LibStub("LibActionButton-1.0-ElvUI", true)
+local LibActionButton = LibStub("LibActionButton-1.0-ElvUI", true) or LibStub("LibActionButton-1.0", true)
 
 local blizzardActionButtonHooksSet
 local ellesmereUIActionButtonHooksSet
