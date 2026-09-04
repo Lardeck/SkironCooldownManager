@@ -35,6 +35,7 @@ local function ApplyChildLayout(child, row, anchorConfig, childAnchor, startPoin
 
 	if child.SCMLayoutLimited then
 		child.SCMLayoutLimited = nil
+		child.SCMMissingCooldownLimited = nil
 		Icons.SetChildVisibilityState(child, child.SCMShouldBeVisible, true)
 	end
 
@@ -51,6 +52,13 @@ local function ApplyChildLayout(child, row, anchorConfig, childAnchor, startPoin
 		SCM:SkinBuffBar(child, child.SCMConfig)
 	end
 	child.SCMChanged = false
+end
+
+local function HideChildWithMissingCooldownID(child)
+	child.SCMLayoutLimited = true
+	child.SCMLayoutApplied = nil
+	child.SCMMissingCooldownLimited = true
+	Icons.SetChildVisibilityState(child, child.SCMShouldBeVisible, true)
 end
 
 local function TrackDuplicateChildren(layoutChildren, layoutChildCount)
@@ -81,7 +89,18 @@ local function TrackDuplicateChildren(layoutChildren, layoutChildCount)
 			local masterChild = seenCooldownIDs[cooldownID]
 			if masterChild then
 				hasDuplicateChildren = true
-				if masterChild ~= child then
+				if not (child.SCMCustom or child:GetCooldownID()) then
+					HideChildWithMissingCooldownID(child)
+				elseif not (masterChild.SCMCustom or masterChild:GetCooldownID()) then
+					HideChildWithMissingCooldownID(masterChild)
+					seenCooldownIDs[cooldownID] = child
+					for uniqueIndex = 1, totalChildren do
+						if uniqueChildren[uniqueIndex] == masterChild then
+							uniqueChildren[uniqueIndex] = child
+							break
+						end
+					end
+				elseif masterChild ~= child then
 					child.SCMLayoutNextDuplicate = masterChild.SCMLayoutNextDuplicate
 					masterChild.SCMLayoutNextDuplicate = child
 				end
@@ -120,19 +139,6 @@ local function GetMatchedAnchorWidth(group, anchorConfig)
 		SCM.SCMRefreshMatchedBuffBarWidths = true
 	elseif not anchorFrame.SCMBuffBarWidthHook then
 		anchorFrame.SCMBuffBarWidthHook = true
-
-		-- SCMAPI.RegisterCallback(castBar, ANCHOR_PROXY_SIZE_CHANGED_EVENT, function(_, proxyGroup, proxy, _width, _height, _selectedAnchorRef, isActiveProxy)
-		-- 	local currentOptions = castBar.barOptions or SCM.castBarConfig
-		-- 	if not (currentOptions.enable and currentOptions.matchParentWidth and isActiveProxy) then
-		-- 		return
-		-- 	end
--- 
-		-- 	if castBar.SCMActiveAnchorFrame == proxy or castBar.SCMActiveAnchorGroup == proxyGroup then
-		-- 		castBar.SCMActiveAnchorFrame = proxy
-		-- 		SCM:RefreshCastBarWidth()
-		-- 	end
-		-- end)
-
 		anchorFrame:HookScript("OnSizeChanged", function()
 			if InCombatLockdown() or CDM.isLayoutInProgress then
 				SCM.SCMRefreshMatchedBuffBarWidths = true
@@ -152,12 +158,16 @@ local function ProcessLayoutChildren(group, visibleChildren, state, anchorConfig
 	local configuredChildCount = configuredChildren and #configuredChildren or 0
 	local layoutSignature = visibleChildCount
 	local hasChangedChild = false
+	local hasMissingLiveCooldown = false
 	local lockGroupSize = group == 1 and SCM.anchorFrames[1] and SCM.anchorFrames[1]:IsProtected() and InCombatLockdown()
 
 	table.sort(visibleChildren, SortBySCMOrder)
 	for index = 1, visibleChildCount do
 		local child = visibleChildren[index]
 		hasChangedChild = hasChangedChild or child.SCMChanged
+		local liveCooldownID = not child.SCMCustom and child.SCMCooldownID and child:GetCooldownID()
+		hasChangedChild = hasChangedChild or (child.SCMMissingCooldownLimited and liveCooldownID)
+		hasMissingLiveCooldown = hasMissingLiveCooldown or (not child.SCMCustom and not liveCooldownID and child.SCMCooldownID and not child.SCMMissingCooldownLimited)
 		local cooldownID = child.SCMCooldownID
 		local cooldownSignature = tonumber(cooldownID) or 0
 		if cooldownSignature == 0 and cooldownID then
@@ -181,7 +191,7 @@ local function ProcessLayoutChildren(group, visibleChildren, state, anchorConfig
 	local layoutChildCount = #layoutChildren
 	layoutSignature = layoutSignature + (configuredChildCount * 31) + (layoutChildCount * 131) + (lockGroupSize and 8191 or 0)
 
-	if allowLayoutSkip and not hasChangedChild and not resetSize and not SCM.isOptionsOpen and state.layoutSignature == layoutSignature then
+	if allowLayoutSkip and not hasChangedChild and not hasMissingLiveCooldown and not resetSize and not SCM.isOptionsOpen and state.layoutSignature == layoutSignature then
 		return
 	end
 

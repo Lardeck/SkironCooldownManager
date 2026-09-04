@@ -46,6 +46,7 @@ local CHILD_SCM_RESET_FIELDS = {
 	"SCMBaseOffsetX",
 	"SCMBaseOffsetY",
 	"SCMLayoutLimited",
+	"SCMMissingCooldownLimited",
 	"SCMLayoutApplied",
 	"SCMAppliedVisibility",
 	"SCMAppliedLayoutLimited",
