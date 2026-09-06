@@ -1340,7 +1340,7 @@ function SCMResourceBarControllerMixin:ConfigurePrimaryBar()
 			local shapeshiftFormID = GetShapeshiftFormID()
 			local customPowerType
 			local druidFormPowerTypes = GetDruidFormPowerTypes(self.primaryBarOptions)
-			if not shapeshiftFormID or shapeshiftFormID == 36 then
+			if not shapeshiftFormID or shapeshiftFormID == DRUID_TREE_FORM or shapeshiftFormID == 36 then
 				customPowerType = druidFormPowerTypes and druidFormPowerTypes[0]
 			elseif shapeshiftFormID == DRUID_BEAR_FORM then
 				customPowerType = druidFormPowerTypes and druidFormPowerTypes[1]
