@@ -21,7 +21,7 @@ local function GetDisplayDataForSpellConfig(defaultCooldownViewerConfig, sourceI
 	local cooldownID = config.cooldownID or tonumber(tostring(configID):match("(%d+)$"))
 
 	if cooldownID then
-		return data.cooldownIDs[cooldownID] or (pairData and pairData.cooldownIDs[cooldownID])
+		return data.cooldownIDs[cooldownID] or (pairData and pairData.cooldownIDs[cooldownID]) or defaultCooldownViewerConfig.cooldownIDs[cooldownID]
 	end
 end
 
