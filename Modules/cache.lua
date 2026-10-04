@@ -58,6 +58,7 @@ function SCM:ResetCooldownViewerRuntimeState()
 	end
 
 	wipe(Cache.cachedViewerChildren)
+	wipe(Cache.cachedChildsBySpellID)
 	wipe(Cache.cachedChildrenTbl)
 	wipe(Cache.cachedGroupedChildren)
 	wipe(Cache.cachedCooldownFrameTbl)
