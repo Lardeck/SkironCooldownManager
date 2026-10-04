@@ -405,16 +405,16 @@ function CDMOptions.SelectRow(widget, rowWidget, parentWidget, anchorOptions, sc
 			fontSize = max(1, floor(fontSize * iconSize + 0.5))
 		end
 
-		local fontSize = AceGUI:Create("Slider")
-		fontSize:SetRelativeWidth(0.5)
-		fontSize:SetSliderValues(1, 50, 1)
-		fontSize:SetLabel("Font Size")
-		fontSize:SetValue(rowConfig.cooldownFontSize or fontSize)
-		fontSize:SetCallback("OnValueChanged", function(self, event, value)
+		local fontSizeSlider = AceGUI:Create("Slider")
+		fontSizeSlider:SetRelativeWidth(0.5)
+		fontSizeSlider:SetSliderValues(1, 50, 1)
+		fontSizeSlider:SetLabel("Font Size")
+		fontSizeSlider:SetValue(rowConfig.cooldownFontSize or fontSize)
+		fontSizeSlider:SetCallback("OnValueChanged", function(self, event, value)
 			rowConfig.cooldownFontSize = value
 			Options.ApplyModeConfigUpdate(anchorIndex, mode)
 		end)
-		cooldownSettings:AddChild(fontSize)
+		cooldownSettings:AddChild(fontSizeSlider)
 	end
 end
 
