@@ -47,14 +47,32 @@ end
 
 local function OnSetDesaturated(iconTexture)
 	local parent = iconTexture:GetParent()
-	if not parent.SCMCustom and not iconTexture.SCMSkipUpdate and iconTexture.SCMDesaturated ~= nil then
-		iconTexture.SCMSkipUpdate = true
-		iconTexture:SetDesaturated(iconTexture.SCMDesaturated)
-		iconTexture.SCMSkipUpdate = nil
+	if parent and not parent.SCMConfig then
+		parent = parent:GetParent()
+	end
+
+	local icon = parent and parent.SCMConfig and parent.Icon
+	if icon and not parent.SCMCustom and not icon.SCMSkipUpdate and icon.SCMDesaturated ~= nil then
+		icon.SCMSkipUpdate = true
+		iconTexture:SetDesaturated(icon.SCMDesaturated)
+		icon.SCMSkipUpdate = nil
 	end
 end
 
+local function SetupDesaturationHooks(child)
+	local icon = child.Icon
+	if not icon or icon.SCMDesaturationHook then
+		return
+	end
+
+	local texture = icon.Icon or icon
+	hooksecurefunc(texture, "SetDesaturated", OnSetDesaturated)
+	hooksecurefunc(texture, "SetDesaturation", OnSetDesaturated)
+	icon.SCMDesaturationHook = true
+end
+
 function Icons.SetupIconHooks(child)
+	SetupDesaturationHooks(child)
 	if child.SCMShowHook then
 		return
 	end
@@ -62,10 +80,6 @@ function Icons.SetupIconHooks(child)
 
 	child:HookScript("OnShow", OnShow)
 	child:HookScript("OnHide", OnHide)
-
-	if child.Icon and child.Icon.SetDesaturated then
-		hooksecurefunc(child.Icon, "SetDesaturated", OnSetDesaturated)
-	end
 end
 
 function Icons.SetupRegularIconHooks(child, options)
@@ -85,6 +99,7 @@ local function SetBuffBarActiveState(child)
 end
 
 function Icons.SetupBuffBarHooks(child)
+	SetupDesaturationHooks(child)
 	if child.SCMSpellID and Constants.FakeAuras[child.SCMSpellID] then
 		child.SCMUseFixedDuration = type(Constants.FakeAuras[child.SCMSpellID]) == "number" and Constants.FakeAuras[child.SCMSpellID]
 	else

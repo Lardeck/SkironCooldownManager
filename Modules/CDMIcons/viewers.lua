@@ -132,6 +132,9 @@ function Icons.ExpandScopedAnchorGroups(viewer, viewerData, scopedAnchorGroups)
 						scopedAnchorGroups[oldGroup] = true
 					end
 				elseif oldCooldownID ~= cooldownID or oldGroup ~= group then
+					if child.Icon.SCMDesaturated ~= nil then
+						Icons.UpdateChildDesaturation(child, false)
+					end
 					child.SCMCooldownID = nil
 					child.SCMState = nil
 

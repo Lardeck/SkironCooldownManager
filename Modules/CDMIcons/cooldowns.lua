@@ -2,9 +2,37 @@ local SCM = select(2, ...)
 
 local Cooldowns = SCM.Cooldowns
 local Cache = SCM.Cache
-local Icons = SCM.Icons
 local States = SCM.States
 local Constants = SCM.Constants
+
+local function GetChildSpellID(child)
+	local spellID
+	if child.SCMSpellCategoryID then
+		spellID = C_Spell.GetLastCategoryCooldownSource(child.SCMSpellCategoryID)
+	elseif child.SCMSpellID then
+		spellID = FindSpellOverrideByID(child.SCMSpellID) or child.SCMSpellID
+	end
+
+	if spellID and not issecretvalue(spellID) and Constants.CheckActiveSpell[spellID] then
+		local activeSpellID = not issecretvalue(child.isActiveSpell) and child.isActiveSpell
+		if activeSpellID then
+			spellID = activeSpellID
+		end
+	end
+
+	return spellID
+end
+
+local function IsChildOnGlobalCooldown(child)
+	if child.SCMEquipSlot then
+		local startTime, duration = GetInventoryItemCooldown("player", child.SCMEquipSlot)
+		return startTime and startTime > 0 and duration > 0 and Cooldowns.IsGlobalCooldown(startTime, duration)
+	end
+
+	local spellID = GetChildSpellID(child)
+	local cooldown = spellID and C_Spell.GetSpellCooldown(spellID)
+	return cooldown and cooldown.isActive and cooldown.isOnGCD
+end
 
 local function GetChildCooldownInfo(child, includeGCD)
 	if child.SCMEquipSlot then
@@ -23,21 +51,9 @@ local function GetChildCooldownInfo(child, includeGCD)
 
 	if child.SCMSpellID or child.SCMSpellCategoryID then
 		local cooldownData = SCM.defaultCooldownViewerConfig.cooldownIDs[child.SCMCooldownID]
-		local spellID
-		if child.SCMSpellCategoryID then
-			spellID = C_Spell.GetLastCategoryCooldownSource(child.SCMSpellCategoryID)
-		else
-			spellID = FindSpellOverrideByID(child.SCMSpellID) or child.SCMSpellID
-		end
+		local spellID = GetChildSpellID(child)
 
 		if spellID then
-			if not issecretvalue(spellID) and Constants.CheckActiveSpell[spellID] then
-				local isActiveSpell = not issecretvalue(child.isActiveSpell) and child.isActiveSpell
-				if isActiveSpell then
-					spellID = isActiveSpell
-				end
-			end
-			
 			local wasSetFromCharges = not issecretvalue(child.wasSetFromCharges) and child.wasSetFromCharges
 			local wasSetFromCooldown = not issecretvalue(child.wasSetFromCooldown) and child.wasSetFromCooldown
 
@@ -123,20 +139,10 @@ function Cooldowns.SetNormalCooldown(self, parent)
 	if cooldownState then
 		self:Clear()
 
-		if durationObject or startTime then
-			if not (childConfig.effectRules and childConfig.effectRules.desaturate) then
-				Icons.UpdateChildDesaturation(parent, cooldownState == "cooldown" and not useAuraDisplayTime, true)
-			end
-
-			if durationObject then
-				self:SetCooldownFromDurationObject(durationObject)
-			else
-				self:SetCooldown(startTime, duration)
-			end
-		else
-			if not (childConfig.effectRules and childConfig.effectRules.desaturate) then
-				Icons.UpdateChildDesaturation(parent, false)
-			end
+		if durationObject then
+			self:SetCooldownFromDurationObject(durationObject)
+		elseif startTime then
+			self:SetCooldown(startTime, duration)
 		end
 
 		States.SetCooldownState(parent, cooldownState, true)
@@ -148,16 +154,13 @@ end
 function Cooldowns.OverrideRegularAuraCooldown(self, parent, options)
 	local config = parent.SCMConfig
 	if not self:GetUseAuraDisplayTime() or config.forceActiveSwipe or not (SCM.IsActiveSwipeDisabled(parent.SCMSpellID, options) or config.hideActiveSwipe) then
-		if not (config.effectRules and config.effectRules.desaturate) then
-			parent.Icon.SCMDesaturated = nil
-		end
 		return
 	end
 
 	Cooldowns.SetNormalCooldown(self, parent)
 end
 
-local function SetRegularChildCooldown(child, cooldownInfo)
+local function SetRegularChildCooldown(child)
 	local cooldownFrame = child.Cooldown
 	if not (cooldownFrame and child.Icon) then
 		return
@@ -175,12 +178,14 @@ local function UpdateViewerChildrenForSpellOverride(viewer, spellID, overrideSpe
 		Cache.cachedViewerChildren[viewer] = children
 	end
 
+	local options = SCM.db.profile.options
 	for i = 1, #children do
 		local child = children[i]
-		if child.SCMConfig and not child.SCMBuffBar and child.SCMSpellID == spellID then
+		local config = child.SCMConfig
+		if config and not child.SCMBuffBar and child.SCMSpellID == spellID then
 			States.SetOverriddenState(child, overrideSpellID and true or false)
-			if cooldownInfo and not child.SCMConfig.forceActiveSwipe then
-				SetRegularChildCooldown(child, cooldownInfo)
+			if cooldownInfo and not config.forceActiveSwipe and (config.hideActiveSwipe or SCM.IsActiveSwipeDisabled(child.SCMSpellID, options)) then
+				SetRegularChildCooldown(child)
 			end
 		end
 	end
@@ -201,13 +206,12 @@ local function OnRegularCooldownChanged(self, changeType)
 	local config = parent.SCMConfig
 	local useAuraDisplayTime = self:GetUseAuraDisplayTime()
 
-	if (SCM.IsActiveSwipeDisabled(parent.SCMSpellID, options) or config.hideActiveSwipe) and not config.forceActiveSwipe and useAuraDisplayTime then
-		Cooldowns.OverrideRegularAuraCooldown(self, parent, options)
-	elseif options.disableGCD or (changeType == "CLEAR" and parent.SCMSpellID and Constants.FixBlizzardSpells[parent.SCMSpellID]) then
+	if useAuraDisplayTime then
+		if not config.forceActiveSwipe and (config.hideActiveSwipe or SCM.IsActiveSwipeDisabled(parent.SCMSpellID, options)) then
+			Cooldowns.OverrideRegularAuraCooldown(self, parent, options)
+		end
+	elseif (options.disableGCD and IsChildOnGlobalCooldown(parent)) or (changeType == "CLEAR" and parent.SCMSpellID and Constants.FixBlizzardSpells[parent.SCMSpellID]) then
 		Cooldowns.SetNormalCooldown(self, parent)
-	elseif not (config.effectRules and config.effectRules.desaturate) and parent.Icon.SCMDesaturated and not useAuraDisplayTime then
-		parent.Icon.SCMDesaturated = nil
-		parent.Icon:SetDesaturated(false)
 	end
 
 	RunNextFrame(function()
@@ -238,12 +242,7 @@ function Cooldowns.SetupCooldownHooks(child, options)
 	end)
 
 	child.Cooldown.SCMParent = child
-	child.Cooldown:HookScript("OnCooldownDone", function(self, ...)
-		local parent = self.SCMParent or self:GetParent()
-		local config = parent.SCMConfig
-		if not (config and config.effectRules and config.effectRules.desaturate) then
-			parent.Icon.SCMDesaturated = nil
-		end
+	child.Cooldown:HookScript("OnCooldownDone", function(self)
 		OnRegularCooldownChanged(self, "DONE")
 	end)
 	child.SCMRegularCooldownHook = true
