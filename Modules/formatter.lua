@@ -38,10 +38,6 @@ function SCMFormatterMixin:Update()
 	local binding = self.durationTextBinding
 
 	if binding then
-		local idleText = self.showIdleDuration and self.numericRuleFormatter:FormatNumber(0) or ""
-
-		binding:SetExpiredText(idleText)
-		binding:SetZeroDurationText(idleText)
 		binding:UpdateFontString()
 	end
 end

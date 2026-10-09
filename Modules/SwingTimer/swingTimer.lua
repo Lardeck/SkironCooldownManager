@@ -421,7 +421,6 @@ function SCM:RefreshSwingTimerHeights()
 end
 
 function SCMSwingTimerMixin:ApplyFormatterSettings(options)
-	self.durationFormatter.showIdleDuration = options.showIdleDuration
 	self.durationFormatter:SetBreakpoints(options.durationBreakpoints)
 end
 

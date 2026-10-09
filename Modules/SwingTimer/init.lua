@@ -6,13 +6,13 @@ local SWING_TIMER_LABELS = {
 	Ranged = SWING_TIMER_RANGED,
 }
 
-local FORMATTER_OPTION_KEYS = { "durationDecimals", "durationRounding", "showIdleDuration" }
+local FORMATTER_OPTION_KEYS = { "durationDecimals", "durationRounding" }
 
 local function MigrateFormatterSettings(options)
 	local defaults = SCM.DefaultDB.profile.options.swingTimer
 	for _, key in ipairs(FORMATTER_OPTION_KEYS) do
 		local value = rawget(options, key)
-		if value ~= nil then
+		if value then
 			for swingType in pairs(SWING_TIMER_LABELS) do
 				local barOptions = options[swingType]
 				if barOptions[key] == defaults[swingType][key] then

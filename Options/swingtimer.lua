@@ -697,7 +697,7 @@ local function AddTextSettings(parent, config)
 	durationSettings:AddChild(durationTextYOffset)
 end
 
-local function AddNumberFormatSettings(parent, swingType, config)
+local function AddNumberFormatSettings(parent, swingType)
 	local formatterSettings = AceGUI:Create("InlineGroup")
 	formatterSettings:SetLayout("flow")
 	formatterSettings:SetTitle("Number Format")
@@ -709,16 +709,6 @@ local function AddNumberFormatSettings(parent, swingType, config)
 		showPrecisionAndRounding = true,
 		hasAlpha = true,
 	})
-
-	local showIdleDuration = AceGUI:Create("CheckBox")
-	showIdleDuration:SetFullWidth(true)
-	showIdleDuration:SetLabel("Show Zero When Idle")
-	showIdleDuration:SetValue(config.showIdleDuration)
-	showIdleDuration:SetCallback("OnValueChanged", function(_, _, value)
-		config.showIdleDuration = value
-		RefreshSwingTimer()
-	end)
-	formatterSettings:AddChild(showIdleDuration)
 end
 
 local function SelectSwingTimerTab(tabGroup, swingType)
@@ -747,7 +737,7 @@ local function SelectSwingTimerTab(tabGroup, swingType)
 		elseif group == "Text" then
 			AddTextSettings(widget, swingTypeConfig)
 		elseif group == "NumberFormat" then
-			AddNumberFormatSettings(widget, swingType, swingTypeConfig)
+			AddNumberFormatSettings(widget, swingType)
 		elseif group == "Spark" then
 			AddSparkSettings(widget, swingTypeConfig)
 		elseif group == "Visibility" then
