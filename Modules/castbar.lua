@@ -120,17 +120,16 @@ local function UpdateActiveAnchorFrame(castBar, options)
 	return activeAnchor
 end
 
-local function GetMatchedCastBarWidth(options, anchorFrame)
-	if not options.matchParentWidth then
-		return
+local function GetCastBarWidth(options, anchorFrame)
+	local width = options.width or 270
+	if options.matchParentWidth and anchorFrame then
+		local anchorWidth = anchorFrame:GetWidth()
+		if anchorWidth and anchorWidth > 0 then
+			width = anchorWidth
+		end
 	end
 
-	if not anchorFrame or not anchorFrame.GetWidth then
-		return
-	end
-
-	local anchorWidth = anchorFrame:GetWidth()
-	return (anchorWidth and anchorWidth > 0) and anchorWidth or nil, anchorFrame
+	return max(options.minWidth or 200, width)
 end
 
 local function HookAnchorWidthRefresh(anchorFrame)
@@ -187,8 +186,7 @@ local function UpdateStatusBarLook(fillColor, bgColor)
 	local backgroundColor = bgColor or options.bgColor
 	local foregroundColor = fillColor or castBar.CurrentFillColor or options.fgColor
 	local anchorFrame = UpdateActiveAnchorFrame(castBar, options)
-	local matchedWidth = GetMatchedCastBarWidth(options, anchorFrame)
-	local width = matchedWidth or options.width or 270
+	local width = GetCastBarWidth(options, anchorFrame)
 
 	if options.matchParentWidth then
 		HookAnchorWidthRefresh(anchorFrame)
@@ -362,7 +360,7 @@ local function RefreshCastBarAnchor(castBar, options)
 		HookAnchorWidthRefresh(anchorFrame)
 	end
 
-	local width = GetMatchedCastBarWidth(options, anchorFrame) or options.width or 270
+	local width = GetCastBarWidth(options, anchorFrame)
 	if castBar:GetWidth() ~= width then
 		UpdateStatusBarLook()
 		if castBar:IsShown() and castBar.CurrentEmpoweredStages and castBar.Status:GetStatusBarTexture() then
@@ -650,7 +648,7 @@ function SCM:InitializeCastBar()
 	self.CastBar = castBar
 	castBar.playerEvents = CreateFrame("Frame")
 	castBar.vehicleEvents = CreateFrame("Frame")
-	SCMAPI.RegisterCallback(castBar, ANCHOR_PROXY_SIZE_CHANGED_EVENT, function(_, proxyGroup, proxy, _width, _height, _selectedAnchorRef, isActiveProxy)
+	SCM.RegisterCallback(castBar, ANCHOR_PROXY_SIZE_CHANGED_EVENT, function(_, proxyGroup, proxy, _width, _height, _selectedAnchorRef, isActiveProxy)
 		local currentOptions = castBar.barOptions or SCM.castBarConfig
 		if not (currentOptions.enable and currentOptions.matchParentWidth and isActiveProxy) then
 			return
@@ -661,7 +659,7 @@ function SCM:InitializeCastBar()
 			SCM:RefreshCastBarWidth()
 		end
 	end)
-	SCMAPI.RegisterCallback(castBar, "SkironCooldownManager.ResourceBar.LayoutUpdated", function()
+	SCM.RegisterCallback(castBar, "SkironCooldownManager.ResourceBar.LayoutUpdated", function()
 		local currentOptions = castBar.barOptions or SCM.castBarConfig
 		if currentOptions and currentOptions.enable then
 			RefreshCastBarAnchor(castBar, currentOptions)
@@ -753,6 +751,7 @@ function SCM:UpdateCastBar()
 
 		self:RefreshCastBarWidth(0.1)
 		PlayerCastingBarFrame:UnregisterAllEvents()
+		OverlayPlayerCastingBarFrame:UnregisterAllEvents()
 	else
 		castBar:SetScript("OnEvent", nil)
 		castBar:UnregisterAllEvents()
