@@ -17,6 +17,7 @@ SCM.CustomAnchors = {}
 SCM.CustomEntries = {}
 SCM.Templates = {}
 SCM.States = {}
+SCM.Callbacks = LibStub("CallbackHandler-1.0"):New(SCM)
 
 function SCM.PrepareCooldownViewerData(releaseCustomIcons, skipCustomIconRebuild)
 	SCM:InvalidateAnchorLinks()
@@ -38,6 +39,10 @@ function SCM.RefreshCooldownViewerLayout()
 	SCM:InitializeCastBar()
 	SCM:RefreshResourceBarConfig(true, true)
 	SCM:RefreshAuraContainers()
+
+	if SCM.isForever then
+		SCM:InitializeSwingTimer()
+	end
 end
 
 function SCM.RefreshCooldownViewerData(releaseCustomIcons, skipCustomIconRebuild)

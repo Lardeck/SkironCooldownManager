@@ -1,6 +1,5 @@
 local SCM = select(2, ...)
 SCMAPI = {}
-SCM.Callbacks = LibStub("CallbackHandler-1.0"):New(SCMAPI)
 
 function SCMAPI.IsReady()
 	return SCM.initialized

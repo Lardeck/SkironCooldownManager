@@ -1,4 +1,4 @@
-## Interface: 120007, 120100
+## Interface: 16001, 120100, 120105
 ## Title: |cFF4080FFSkiron|r|cFFFFFFFFCooldownManager|r
 ## Author: Permok
 ## Version: @project-version@
@@ -83,6 +83,9 @@ Modules\castbar.lua
 Modules\states.lua
 Modules\auras.lua
 Modules\overlay.lua
+Modules\SwingTimer\swingTimer.lua [AllowLoadGameType camelot][ExcludeLoadGameType standard, classic]
+Modules\SwingTimer\templates.xml [AllowLoadGameType camelot][ExcludeLoadGameType standard, classic]
+Modules\SwingTimer\init.lua [AllowLoadGameType camelot][ExcludeLoadGameType standard, classic]
 
 api.lua
 
@@ -108,6 +111,7 @@ Options\general.lua
 Options\castbar.lua
 Options\options.lua
 Options\resourcebar.lua
+Options\swingtimer.lua [AllowLoadGameType camelot][ExcludeLoadGameType standard, classic]
 Options\profiles.lua
 Options\temporary.lua
 ## Options\templates\anchor.lua

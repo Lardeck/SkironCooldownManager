@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
+	<Frame name="SCMSwingTimerBarTemplate" mixin="SCMSwingTimerMixin" virtual="true" hidden="true">
+		<Size x="220" y="30" />
+		<KeyValues>
+			<KeyValue key="barTexture" value="Interface\Buttons\WHITE8x8" type="string" />
+		</KeyValues>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background" setAllPoints="true" snapToPixelGrid="false" texelSnappingBias="0">
+					<Color r="0.2" g="0.2" b="0.2" a="0.5" />
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<StatusBar parentKey="StatusBar" useParentLevel="true" minValue="0" maxValue="1" defaultValue="0" setAllPoints="true">
+				<BarTexture file="Interface\Buttons\WHITE8x8" snapToPixelGrid="false" texelSnappingBias="0">
+					<Color r="0.5" g="0.5" b="1" a="1" />
+				</BarTexture>
+				<Layers>
+					<Layer level="OVERLAY">
+						<Texture parentKey="Spark" file="Interface\Buttons\WHITE8x8" alpha="1" hidden="true" snapToPixelGrid="false" texelSnappingBias="0">
+							<Size x="2" y="30" />
+						</Texture>
+						<Texture parentKey="TypeLabelShadow" setAllPoints="true" hidden="true" />
+						<FontString parentKey="Name" inherits="Permok_Expressway" justifyH="LEFT" justifyV="MIDDLE" wordwrap="false">
+							<FontHeight val="15" />
+							<Shadow>
+								<Color r="0" g="0" b="0" a="0" />
+								<Offset x="0" y="0" />
+							</Shadow>
+							<Anchors>
+								<Anchor point="TOPLEFT" />
+								<Anchor point="BOTTOMRIGHT" />
+							</Anchors>
+						</FontString>
+						<FontString parentKey="Duration" inherits="Permok_Expressway" justifyH="RIGHT" wordwrap="false">
+							<FontHeight val="15" />
+							<Shadow>
+								<Color r="0" g="0" b="0" a="0" />
+								<Offset x="0" y="0" />
+							</Shadow>
+							<Anchors>
+								<Anchor point="RIGHT" />
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</StatusBar>
+			<Frame parentKey="Border" inherits="BackdropTemplate" setAllPoints="true">
+				<KeyValues>
+					<KeyValue key="backdropInfo" value="BACKDROP_SCM_PIXEL" type="global" />
+					<KeyValue key="backdropBorderColor" value="BLACK_FONT_COLOR" type="global" />
+				</KeyValues>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad" />
+			<OnEvent method="OnEvent" />
+			<OnHide method="OnHide" />
+			<OnAttributeChanged method="OnAttributeChanged" />
+		</Scripts>
+	</Frame>
+</Ui>
