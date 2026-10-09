@@ -908,84 +908,97 @@ local function ResourceBar(self)
 	label:SetFontObject("Game12Font")
 	resourceBarFrame:AddChild(label)
 
-	local statusGroup = AceGUI:Create("InlineGroup")
-	statusGroup:SetFullWidth(true)
-	statusGroup:SetLayout("flow")
-	resourceBarFrame:AddChild(statusGroup)
+	if not SCM.isForever then
+		local statusGroup = AceGUI:Create("InlineGroup")
+		statusGroup:SetFullWidth(true)
+		statusGroup:SetLayout("flow")
+		resourceBarFrame:AddChild(statusGroup)
 
-	local currentStatus = AceGUI:Create("Label")
-	currentStatus:SetRelativeWidth(0.33)
-	currentStatus:SetJustifyH("LEFT")
-	currentStatus:SetJustifyV("MIDDLE")
-	currentStatus:SetFontObject("Game15Font")
-	statusGroup:AddChild(currentStatus)
+		local currentStatus = AceGUI:Create("Label")
+		currentStatus:SetRelativeWidth(0.33)
+		currentStatus:SetJustifyH("LEFT")
+		currentStatus:SetJustifyV("MIDDLE")
+		currentStatus:SetFontObject("Game15Font")
+		statusGroup:AddChild(currentStatus)
 
-	if SCM.specResourceBarConfig.active then
-		currentStatus:SetText(string.format("Status: |cffea00ffSpecialization|r (%s)", (select(2, SCM.Utils.GetSpec()))))
-	else
-		currentStatus:SetText("Status: |cfffcf803Profile|r")
-	end
-
-	local modifyCurrentSpecialization = AceGUI:Create("CheckBox")
-	modifyCurrentSpecialization:SetRelativeWidth(0.33)
-	modifyCurrentSpecialization:SetLabel("Use Specialization Config")
-	modifyCurrentSpecialization:SetValue(SCM.specResourceBarConfig.active)
-	statusGroup:AddChild(modifyCurrentSpecialization)
-
-	local resetCurrentSpecialization = AceGUI:Create("Button")
-	resetCurrentSpecialization:SetText("Clear Spec Config")
-	resetCurrentSpecialization:SetRelativeWidth(0.33)
-	resetCurrentSpecialization:SetDisabled(not SCM.specResourceBarConfig.active)
-	resetCurrentSpecialization:SetCallback("OnEnter", function()
-		GameTooltip:SetOwner(self.frame, "ANCHOR_CURSOR")
-		GameTooltip:SetText("Clear Spec Config", nil, nil, nil, nil, true)
-		GameTooltip:AddLine("This will clear the spec config and fall back to the normal resource bar options.", 1, 1, 1, true)
-		GameTooltip:Show()
-	end)
-	resetCurrentSpecialization:SetCallback("OnLeave", function()
-		GameTooltip:Hide()
-	end)
-	statusGroup:AddChild(resetCurrentSpecialization)
-
-	local currentTab = "Layout"
-	local resourceBarTabs = AceGUI:Create("TabGroup")
-	resourceBarTabs:SetTabs(RESOURCE_BAR_TABS)
-	resourceBarTabs:SetFullWidth(true)
-	resourceBarTabs:SetFullHeight(true)
-	resourceBarTabs:SetLayout("fill")
-	resourceBarTabs:SetCallback("OnGroupSelected", function(widget, _, group)
-		currentTab = group
-		SelectResourceBarTab(widget, group, SCM.resourceBarConfig)
-	end)
-	resourceBarTabs:SelectTab("Layout")
-	resourceBarFrame:AddChild(resourceBarTabs)
-
-	resetCurrentSpecialization:SetCallback("OnClick", function()
-		local specResourceBarConfig = SCM.specResourceBarConfig
-		local isActive = specResourceBarConfig.active
-
-		wipe(specResourceBarConfig)
-		specResourceBarConfig.active = isActive
-		SCM:UpdateCastAndResourceBarConfigs()
-
-		resourceBarTabs:SelectTab(currentTab)
-		RefreshResourceBars()
-	end)
-
-	modifyCurrentSpecialization:SetCallback("OnValueChanged", function(_, _, value)
-		SCM.specResourceBarConfig.active = value
-		SCM:UpdateCastAndResourceBarConfigs()
-
-		if value then
+		if SCM.specResourceBarConfig.active then
 			currentStatus:SetText(string.format("Status: |cffea00ffSpecialization|r (%s)", (select(2, SCM.Utils.GetSpec()))))
 		else
 			currentStatus:SetText("Status: |cfffcf803Profile|r")
 		end
 
-		resourceBarTabs:SelectTab(currentTab)
-		resetCurrentSpecialization:SetDisabled(not value)
-		RefreshResourceBars()
-	end)
+		local modifyCurrentSpecialization = AceGUI:Create("CheckBox")
+		modifyCurrentSpecialization:SetRelativeWidth(0.33)
+		modifyCurrentSpecialization:SetLabel("Use Specialization Config")
+		modifyCurrentSpecialization:SetValue(SCM.specResourceBarConfig.active)
+		statusGroup:AddChild(modifyCurrentSpecialization)
+
+		local resetCurrentSpecialization = AceGUI:Create("Button")
+		resetCurrentSpecialization:SetText("Clear Spec Config")
+		resetCurrentSpecialization:SetRelativeWidth(0.33)
+		resetCurrentSpecialization:SetDisabled(not SCM.specResourceBarConfig.active)
+		resetCurrentSpecialization:SetCallback("OnEnter", function()
+			GameTooltip:SetOwner(self.frame, "ANCHOR_CURSOR")
+			GameTooltip:SetText("Clear Spec Config", nil, nil, nil, nil, true)
+			GameTooltip:AddLine("This will clear the spec config and fall back to the normal resource bar options.", 1, 1, 1, true)
+			GameTooltip:Show()
+		end)
+		resetCurrentSpecialization:SetCallback("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+		statusGroup:AddChild(resetCurrentSpecialization)
+
+		local currentTab = "Layout"
+		local resourceBarTabs = AceGUI:Create("TabGroup")
+		resourceBarTabs:SetTabs(RESOURCE_BAR_TABS)
+		resourceBarTabs:SetFullWidth(true)
+		resourceBarTabs:SetFullHeight(true)
+		resourceBarTabs:SetLayout("fill")
+		resourceBarTabs:SetCallback("OnGroupSelected", function(widget, _, group)
+			currentTab = group
+			SelectResourceBarTab(widget, group, SCM.resourceBarConfig)
+		end)
+		resourceBarTabs:SelectTab("Layout")
+		resourceBarFrame:AddChild(resourceBarTabs)
+
+		resetCurrentSpecialization:SetCallback("OnClick", function()
+			local specResourceBarConfig = SCM.specResourceBarConfig
+			local isActive = specResourceBarConfig.active
+
+			wipe(specResourceBarConfig)
+			specResourceBarConfig.active = isActive
+			SCM:UpdateCastAndResourceBarConfigs()
+
+			resourceBarTabs:SelectTab(currentTab)
+			RefreshResourceBars()
+		end)
+
+		modifyCurrentSpecialization:SetCallback("OnValueChanged", function(_, _, value)
+			SCM.specResourceBarConfig.active = value
+			SCM:UpdateCastAndResourceBarConfigs()
+
+			if value then
+				currentStatus:SetText(string.format("Status: |cffea00ffSpecialization|r (%s)", (select(2, SCM.Utils.GetSpec()))))
+			else
+				currentStatus:SetText("Status: |cfffcf803Profile|r")
+			end
+
+			resourceBarTabs:SelectTab(currentTab)
+			resetCurrentSpecialization:SetDisabled(not value)
+			RefreshResourceBars()
+		end)
+	else
+		local resourceBarTabs = AceGUI:Create("TabGroup")
+		resourceBarTabs:SetTabs(RESOURCE_BAR_TABS)
+		resourceBarTabs:SetFullWidth(true)
+		resourceBarTabs:SetFullHeight(true)
+		resourceBarTabs:SetLayout("fill")
+		resourceBarTabs:SetCallback("OnGroupSelected", function(widget, _, group)
+			SelectResourceBarTab(widget, group, SCM.resourceBarConfig)
+		end)
+		resourceBarTabs:SelectTab("Layout")
+		resourceBarFrame:AddChild(resourceBarTabs)
+	end
 end
 
 SCM.MainTabs.ResourceBar.callback = ResourceBar

@@ -42,17 +42,17 @@ local function SetSpecConfigMetatables(specConfig, profileConfig, defaultConfig)
 	})
 end
 
-function SCM:UpdateCastAndResourceBarConfigs()
+function SCM:UpdateCastAndResourceBarConfigs(checkSpec)
 	local options = self.db.profile.options
 	local defaultOptions = SCM.DefaultDB.profile.options
 
-	if self.specResourceBarConfig.active then
+	if checkSpec and self.specResourceBarConfig.active then
 		self.resourceBarConfig = SetSpecConfigMetatables(self.specResourceBarConfig, options.resourceBar, defaultOptions.resourceBar)
 	else
 		self.resourceBarConfig = options.resourceBar
 	end
 
-	if self.specCastBarConfig.active then
+	if checkSpec and self.specCastBarConfig.active then
 		self.castBarConfig = SetSpecConfigMetatables(self.specCastBarConfig, options.castBar, defaultOptions.castBar)
 	else
 		self.castBarConfig = options.castBar
@@ -67,7 +67,15 @@ function SCM:UpdateDB()
 	local firstGlobalGroup = SCM.Utils.ToGlobalGroup(1)
 	local firstBuffBarGroup = SCM.Utils.ToBuffBarGroup(1)
 	local class = Utils.GetClass()
-	local specID, _, _, _, role = Utils.GetSpec() or 1
+
+	local specID, role, _
+	if SCM.isForever then
+		specID = 1
+		role = select(5, Utils.GetSpec())
+	else
+		specID, _, _, _, role = Utils.GetSpec()
+	end
+
 	local _, _, raceID = UnitRace("player")
 
 	local currentConfig = self.DB:LoadData()
@@ -115,9 +123,15 @@ function SCM:UpdateDB()
 	self.globalAurasAnchorConfig = self.db.profile.globalAurasAnchorConfig
 
 	self.customConfig = currentConfig.customConfig
-	self.specResourceBarConfig = currentConfig.resourceBarConfig
-	self.specCastBarConfig = currentConfig.castBarConfig
-	self:UpdateCastAndResourceBarConfigs()
+
+	if not SCM.isForever then
+		self.specResourceBarConfig = currentConfig.resourceBarConfig
+		self.specCastBarConfig = currentConfig.castBarConfig
+		self:UpdateCastAndResourceBarConfigs(true)
+	else
+		self.swingTimerConfig = self.db.profile.options.swingTimer
+		self:UpdateCastAndResourceBarConfigs(false)
+	end
 
 	self.isHideWhenInactiveEnabled = self:GetHideWhenInactive() == 1
 	self.showTooltips = self:GetShowTooltip() == 1

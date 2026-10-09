@@ -2,6 +2,10 @@ local SCM = select(2, ...)
 
 local Utils = SCM.Utils
 local Cache = SCM.Cache
+
+local GetSpecialization = C_SpecializationInfo and C_SpecializationInfo.GetSpecialization
+local GetSpecializationInfo = C_SpecializationInfo and C_SpecializationInfo.GetSpecializationInfo
+
 local COOLDOWN_CONFIG_KEY_PREFIX = "cooldown:"
 local GLOBAL_GROUP_OFFSET = 100
 local GLOBAL_BUFF_BAR_OFFSET = 200
