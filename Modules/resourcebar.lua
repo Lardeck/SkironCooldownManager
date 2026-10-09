@@ -1359,7 +1359,7 @@ function SCMResourceBarControllerMixin:GetPrimaryPower(powerType, powerToken, cl
 	end
 
 	local forceMana = false
-	if SCM.specResourceBarConfig.active then
+	if SCM.specResourceBarConfig and SCM.specResourceBarConfig.active then
 		if className == "DRUID" then
 			local formPowerTypes = GetDruidFormPowerTypes(self.primaryBarOptions)
 			powerType = formPowerTypes and formPowerTypes[formIndex]
@@ -1413,7 +1413,7 @@ function SCMResourceBarControllerMixin:GetSecondaryResource(primaryPowerType, se
 	end
 
 	local forceMana = false
-	if SCM.specResourceBarConfig.active then
+	if SCM.specResourceBarConfig and SCM.specResourceBarConfig.active then
 		if className == "DRUID" then
 			local formPowerTypes = GetDruidFormPowerTypes(self.secondaryBarOptions)
 			local customPowerType = formPowerTypes and formPowerTypes[formIndex]
@@ -1874,7 +1874,7 @@ function SCMResourceBarControllerMixin:Initialize()
 	self:SetScript("OnAttributeChanged", self.OnAttributeChanged)
 	self:SetScript("OnEvent", self.OnEvent)
 	self:RegisterResourceBarEvents()
-	SCMAPI.RegisterCallback(self, ANCHOR_PROXY_SIZE_CHANGED_EVENT, function(_, proxyGroup, proxy, width, height, selectedAnchorRef, isActiveProxy)
+	SCM.RegisterCallback(self, ANCHOR_PROXY_SIZE_CHANGED_EVENT, function(_, proxyGroup, proxy, width, height, selectedAnchorRef, isActiveProxy)
 		local barOptions = SCM.resourceBarConfig
 		if not barOptions then
 			return
@@ -1926,7 +1926,7 @@ function SCM:ResetResourceBar()
 	local primaryBar = container.PrimaryBar or _G["SCM_PrimaryResourceBar"]
 	local secondaryBar = container.SecondaryBar or _G["SCM_SecondaryResourceBar"]
 
-	SCMAPI.UnregisterCallback(container, ANCHOR_PROXY_SIZE_CHANGED_EVENT)
+	SCM.UnregisterCallback(container, ANCHOR_PROXY_SIZE_CHANGED_EVENT)
 	container:UnregisterAllEvents()
 	container:SetScript("OnAttributeChanged", nil)
 	container:SetScript("OnEvent", nil)
