@@ -48,6 +48,7 @@ hooks.lua
 
 Modules\glow.lua
 Modules\cache.lua
+Modules\formatter.lua
 Modules\skinning.lua
 Modules\elvui_skin.lua
 Modules\utils.lua
@@ -65,10 +66,10 @@ Modules\migration.lua
 Modules\cooldowns.lua
 Modules\CDMIcons\buffs.lua
 Modules\CDMIcons\cooldowns.lua
-Modules\icons.lua
 Modules\CDMIcons\hooks.lua
 Modules\CDMIcons\viewers.lua
 Modules\CDMIcons\processing.lua
+Modules\icons.lua
 Modules\cdm.lua
 Modules\cdmanchors.lua
 Modules\cdmlayout.lua
@@ -102,7 +103,7 @@ Options\cdm\spellConfig\tabs\cooldown.lua
 Options\cdm\spellConfig\tabs\display.lua
 Options\cdm\spellConfig\tabs\states.lua
 Options\cdm\spellConfig\tabs\subregions.lua
-## Options\cdm\spellConfig\tabs\states.lua
+Options\templates\formatter.lua
 Options\general.lua
 Options\castbar.lua
 Options\options.lua

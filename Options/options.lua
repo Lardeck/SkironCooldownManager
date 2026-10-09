@@ -397,7 +397,7 @@ function SCM:ApplyOptions()
 	self:SetBuffBarHideWhenInactive(options.disableBuffBarHideWhenInactive)
 	self:SetBuffBarContent(options.buffBarContent)
 	self:ApplyAttributeDriver()
-	self.Cooldowns:ApplyFormatterSettings()
+	self.Cooldowns.Formatter:SetBreakpoints(options.cooldownBreakpoints)
 end
 
 local function OpenOptions()

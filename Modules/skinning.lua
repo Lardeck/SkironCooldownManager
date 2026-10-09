@@ -284,7 +284,7 @@ local function ApplyCooldownStyle(child, options, childConfig)
 		cooldownFrame:SetSwipeTexture("Interface\\Buttons\\WHITE8x8")
 		cooldownFrame.SCMParent = child
 		ApplyCooldownPoints(cooldownFrame, child, options, childConfig)
-		SCM.Cooldowns.ApplyNumericRuleFormatter(cooldownFrame)
+		SCM.Cooldowns.Formatter:ApplyToCooldown(cooldownFrame)
 		ApplyCooldownSkin(cooldownFrame)
 	end
 end

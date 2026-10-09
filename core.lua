@@ -6,6 +6,7 @@ SCM.Cache = {}
 SCM.Utils = {}
 SCM.CustomIcons = {}
 SCM.Cooldowns = {}
+SCM.Formatter = {}
 SCM.Icons = {}
 SCM.anchorFrames = {}
 SCM.itemFrames = {}

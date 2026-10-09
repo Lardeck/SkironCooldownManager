@@ -2,20 +2,7 @@ local SCM = select(2, ...)
 
 local Cooldowns = SCM.Cooldowns
 
-local NumericRuleFormatter = C_StringUtil.CreateNumericRuleFormatter()
-Cooldowns.NumericRuleFormatter = NumericRuleFormatter
-
-function Cooldowns.ApplyNumericRuleFormatter(cooldownFrame)
-	if cooldownFrame and cooldownFrame.SetCountdownFormatter then
-		cooldownFrame:SetCountdownFormatter(NumericRuleFormatter)
-	end
-end
-
-function Cooldowns:ApplyFormatterSettings()
-	local options = SCM.db.profile.options
-
-	NumericRuleFormatter:SetBreakpoints(options.cooldownBreakpoints)
-end
+Cooldowns.Formatter = SCM.Formatter.CreateFormatter()
 
 local function OnCooldownSet(self, ...)
 	local handler = self.SCMCooldownCallback

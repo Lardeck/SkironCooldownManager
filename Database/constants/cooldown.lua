@@ -1,9 +1,9 @@
 local SCM = select(2, ...)
 local Constants = SCM.Constants
 
-Constants.CooldownTimer = {}
+Constants.Formatter = {}
 
-Constants.CooldownTimer.DisplayStyle = {
+Constants.Formatter.DisplayStyle = {
 	{
 		decimalSeconds = "Decimal Seconds (1.1)",
 		seconds = "Seconds (10s)",
@@ -24,7 +24,7 @@ Constants.CooldownTimer.DisplayStyle = {
 	},
 }
 
-Constants.CooldownTimer.DisplayStyleSettings = {
+Constants.Formatter.DisplayStyleSettings = {
 	decimalSeconds = {
 		step = 0.1,
 		rounding = Enum.NumericRuleFormatRounding.Up,
@@ -62,7 +62,7 @@ Constants.CooldownTimer.DisplayStyleSettings = {
 	},
 }
 
-Constants.CooldownTimer.DefaultBreakpoints = {
+Constants.Formatter.DefaultBreakpoints = {
 	{
 		threshold = 0,
 		displayStyle = "secondsOnly",
