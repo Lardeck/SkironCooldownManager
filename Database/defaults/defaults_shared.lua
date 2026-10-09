@@ -241,12 +241,12 @@ SCM.DefaultDB = {
 				[26573] = { enabled = true, class = "PALADIN" }, -- Consecration
 
 				-- Priest
-				[10060] = { enabled = false, class = "PRIEST"}, -- Power Infusion
+				[10060] = { enabled = false, class = "PRIEST" }, -- Power Infusion
 				-- Discipline + Shadow
 				[589] = { enabled = true, class = "PRIEST" }, -- Shadow Word: Pain
 				-- Shadow
-				[34914] = { enabled = true, class = "PRIEST"}, -- Vampiric Touch
-				[335467] = { enabled = true, class = "PRIEST"}, -- Shadow Word: Madness
+				[34914] = { enabled = true, class = "PRIEST" }, -- Vampiric Touch
+				[335467] = { enabled = true, class = "PRIEST" }, -- Shadow Word: Madness
 
 				-- Rogue
 				[315496] = { enabled = true, class = "ROGUE" }, -- Slice and Dice
@@ -535,6 +535,7 @@ SCM.DefaultDB = {
 			},
 			castBar = {
 				enable = true,
+				minWidth = 200,
 				width = 270,
 				height = 24,
 				texture = "Solid",

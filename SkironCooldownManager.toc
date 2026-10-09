@@ -36,7 +36,9 @@ Database\constants\cdm.lua
 Database\constants\character.lua
 Database\constants\cooldown.lua
 Database\constants\resourcebar.lua
-Database\defaults.lua
+Database\defaults\defaults_shared.lua
+Database\defaults\defaults_standard.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot, classic]
+Database\defaults\defaults_forever.lua [AllowLoadGameType camelot][ExcludeLoadGameType standard, classic]
 Database\sharedmedia.lua
 Database\config.lua
 
