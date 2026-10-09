@@ -476,7 +476,11 @@ local function ProcessAndCreateButtons(parentButton, items, isBuffIcon, scrollFr
 				trinketSlots[info.equipSlot] = (trinketSlots[info.equipSlot] or 0) + 1
 				buttonName, texture = CDMOptions.GetItemIconData(info, item.category, activeColor, trinketSlots[info.equipSlot])
 			elseif info.spellID then
-				buttonName = string.format("|T%d:0|t |cff%s%s (%d)|r", C_Spell.GetSpellTexture(info.spellID), activeColor, C_Spell.GetSpellName(info.spellID), info.spellID)
+				
+				local spellTexture = C_Spell.GetSpellTexture(info.spellID)
+				if item.sortName and spellTexture then
+					buttonName = string.format("|T%d:0|t |cff%s%s (%d)|r", spellTexture, activeColor, item.sortName, info.spellID)
+				end
 			else
 				buttonName, texture = CDMOptions.GetItemIconData(info, item.category, activeColor, trinketSlots)
 			end
