@@ -71,6 +71,14 @@ local presetButtonConfigs = {
 			},
 		},
 		{
+			text = "|T7816859:16:16|t Liquid Luster",
+			configID = 1295132,
+			iconType = "timer",
+			config = {
+				duration = 30,
+			},
+		},		
+		{
 			text = "|T133876:16:16|t Algeth'ar Puzzle Box",
 			configID = 383781,
 			iconType = "timer",
@@ -153,6 +161,19 @@ local presetButtonConfigs = {
 				},
 			},
 		},
+		{	
+			text = "|T7816859:16:16|t Liquid Luster",
+			configID = 271887,
+			iconType = "item",
+			hidden = SCM.isForever,
+			config = {
+				customItems = {
+					[1] = 274764,
+					[2] = 271887,
+					[3] = 271886,
+				},
+			},
+		},	
 	},
 	["RACIALS"] = {
 		{

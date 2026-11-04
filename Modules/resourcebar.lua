@@ -81,8 +81,8 @@ end
 
 local function GetDruidFormPowerTypes(barOptions)
 	local druidFormPowerTypes = barOptions.druidFormPowerTypes
-	if not druidFormPowerTypes or SCM.isForever then
-		return druidFormPowerTypes
+	if not druidFormPowerTypes then
+		return
 	end
 
 	local specID = Utils.GetSpec()
@@ -592,7 +592,7 @@ end
 
 local function ApplyManaTickSparkOptions(bar)
 	local manaTickBar = bar.manaTickBar
-	local sparkOptions = bar.Controller.barOptions.manaTickSpark
+	local sparkOptions = bar.barOptions.manaTickSpark
 	local spark = manaTickBar.Spark
 
 	manaTickBar:SetFrameStrata(bar:GetFrameStrata())
@@ -606,21 +606,15 @@ local function ApplyManaTickSparkOptions(bar)
 	PixelUtil.SetPoint(spark, sparkPoint, manaTickBar:GetStatusBarTexture(), sparkPoint, sparkOptions.xOffset, sparkOptions.yOffset)
 end
 
-local function HideManaTick(bar)
+local function StopManaTick(bar)
+	if bar.manaTickEndSignals then
+		bar.manaTickEndSignals:CancelAllSignals()
+	end
+
+	bar.manaTickPending = nil
 	if bar.manaTickBar then
 		bar.manaTickBar:Hide()
 	end
-end
-
-local function StopManaTick(controller)
-	if controller.manaTickEndSignals then
-		controller.manaTickEndSignals:CancelAllSignals()
-	end
-
-	controller.PrimaryBar.manaTickPending = nil
-	controller.SecondaryBar.manaTickPending = nil
-	HideManaTick(controller.PrimaryBar)
-	HideManaTick(controller.SecondaryBar)
 end
 
 local function ResetResourceBar(bar)
@@ -632,8 +626,7 @@ local function ResetResourceBar(bar)
 	bar.SCMRegisterUnitAura = nil
 	bar.Text.Value:SetText("")
 
-	bar.manaTickPending = nil
-	HideManaTick(bar)
+	StopManaTick(bar)
 	HideRegions(bar.SegmentTicks)
 	HideSegmentBars(bar.SegmentFillBars)
 	HideRegions(bar.RuneSegmentBars)
@@ -708,7 +701,7 @@ local function ConfigureBarForResource(bar, resource)
 		or (bar.powerType == Enum.PowerType.Mana) ~= (powerType == Enum.PowerType.Mana)
 
 	if bar.powerType == Enum.PowerType.Mana and powerType ~= Enum.PowerType.Mana then
-		HideManaTick(bar)
+		StopManaTick(bar)
 	end
 
 	if segmentCountChanged then
@@ -1020,16 +1013,17 @@ local function UpdateSegments(bar, maxValue, currentValue, resourceSegmentValues
 end
 
 local function UpdateManaTick(bar)
-	if not SCM.isForever or bar.powerType ~= Enum.PowerType.Mana or not bar.powerToken then
-		HideManaTick(bar)
+	if not SCM.isForever then
 		return
 	end
 
 	local manaTickBar = bar.manaTickBar
 	local barOptions = bar.barOptions
-	local controller = bar.Controller
-	if not controller.barOptions.manaTickSpark.enable or barOptions.textOnly or not controller.manaTickEndSignals or not controller.manaTickEndSignals:HasSignal(MANA_TICK_SIGNAL_KEY) then
-		HideManaTick(bar)
+	if not barOptions.manaTickSpark.enable or barOptions.textOnly or not bar.manaTickEndSignals or not bar.manaTickEndSignals:HasSignal(MANA_TICK_SIGNAL_KEY) then
+		if manaTickBar then
+			manaTickBar:Hide()
+		end
+
 		return
 	end
 
@@ -1050,7 +1044,7 @@ local function UpdateManaTick(bar)
 	end
 
 	if bar.manaTickPending then
-		manaTickBar:SetTimerDuration(controller.manaTickDuration, Enum.StatusBarInterpolation.Immediate, Enum.StatusBarTimerDirection.ElapsedTime)
+		manaTickBar:SetTimerDuration(bar.manaTickDuration, Enum.StatusBarInterpolation.Immediate, Enum.StatusBarTimerDirection.ElapsedTime)
 		bar.manaTickPending = nil
 	end
 
@@ -1252,6 +1246,10 @@ local function RegisterBarEvents(bar, barOptions)
 	if bar.powerType == Enum.PowerType.ComboPoints and not SCM.isForever then
 		bar:RegisterUnitEvent("UNIT_POWER_POINT_CHARGE", "player")
 	end
+
+	if SCM.isForever and bar.powerType == Enum.PowerType.Mana then
+		bar:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
+	end
 end
 
 SCMResourceBarMixin = {}
@@ -1271,6 +1269,10 @@ function SCMResourceBarMixin:OnEvent(event, _, ...)
 		if self.powerType == Enum.PowerType.Mana then
 			UpdateManaTick(self)
 		end
+	elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+		local spellID = select(2, ...)
+		controller:RefreshManaTick(self, spellID)
+		return
 	end
 
 	if event == "UNIT_MAXPOWER" then
@@ -1662,7 +1664,7 @@ function SCMResourceBarControllerMixin:UpdateBarDisplay(bar, currentValue, maxVa
 		else
 			textValue:SetText(floor(staggerPercent * 100 + 0.5))
 		end
-	elseif bar.powerType == Enum.PowerType.Mana and not barOptions.showRawMana then
+	elseif bar.powerType == Enum.PowerType.Mana then
 		local manaPercent = UnitPowerPercent("player", bar.powerType, false, CurveConstants.ScaleTo100)
 
 		if barOptions.showPercentageSign then
@@ -1790,7 +1792,6 @@ function SCMResourceBarControllerMixin:RefreshBarAppearance(bar, refreshTicks, c
 
 	self:UpdateBarSegments(bar, currentValue, maxValue, resourceSegmentValues)
 	self:RefreshBarSizes(bar, refreshTicks, currentValue, maxValue, resourceSegmentValues, true)
-	UpdateManaTick(bar)
 end
 
 function SCMResourceBarControllerMixin:RefreshBarDisplay(bar, refreshTicks)
@@ -1798,7 +1799,7 @@ function SCMResourceBarControllerMixin:RefreshBarDisplay(bar, refreshTicks)
 	self:RefreshBarAppearance(bar, refreshTicks, currentValue, maxValue, resourceSegmentValues)
 end
 
-function SCMResourceBarControllerMixin:RefreshManaTick(spellID)
+function SCMResourceBarControllerMixin:RefreshManaTick(bar, spellID)
 	if not spellID or issecretvalue(spellID) then
 		return
 	end
@@ -1811,20 +1812,17 @@ function SCMResourceBarControllerMixin:RefreshManaTick(spellID)
 	local now = GetTime()
 	for _, costInfo in ipairs(powerCosts) do
 		if costInfo.cost and costInfo.cost > 0 and costInfo.type == Enum.PowerType.Mana then
-			self.manaTickDuration = self.manaTickDuration or C_DurationUtil.CreateDuration()
-			self.manaTickDuration:SetTimeFromStart(now, 5)
-			self.PrimaryBar.manaTickPending = true
-			self.SecondaryBar.manaTickPending = true
+			bar.manaTickDuration = bar.manaTickDuration or C_DurationUtil.CreateDuration()
+			bar.manaTickDuration:SetTimeFromStart(now, 5)
+			bar.manaTickPending = true
 
-			if not self.manaTickEndSignals then
-				self.manaTickEndSignals = C_Timer.NewTimedSignalMap(function()
-					StopManaTick(self)
+			if not bar.manaTickEndSignals then
+				bar.manaTickEndSignals = C_Timer.NewTimedSignalMap(function()
+					StopManaTick(bar)
 				end)
 			end
 
-			self.manaTickEndSignals:SignalAt(MANA_TICK_SIGNAL_KEY, self.manaTickDuration:GetEndTime())
-			UpdateManaTick(self.PrimaryBar)
-			UpdateManaTick(self.SecondaryBar)
+			bar.manaTickEndSignals:SignalAt(MANA_TICK_SIGNAL_KEY, bar.manaTickDuration:GetEndTime())
 			break
 		end
 	end
@@ -1916,12 +1914,7 @@ function SCMResourceBarControllerMixin:OnAttributeChanged(name, value)
 	self:UpdateContainerShownState()
 end
 
-function SCMResourceBarControllerMixin:OnEvent(event, _, ...)
-	if event == "UNIT_SPELLCAST_SUCCEEDED" then
-		self:RefreshManaTick(select(2, ...))
-		return
-	end
-
+function SCMResourceBarControllerMixin:OnEvent(event)
 	if event == "PLAYER_REGEN_ENABLED" then
 		if self.SCMRefreshMatchedBarWidths then
 			self.SCMRefreshMatchedBarWidths = nil
@@ -1998,10 +1991,6 @@ function SCMResourceBarControllerMixin:RegisterResourceBarEvents()
 		self:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
 	end
 
-	if SCM.isForever then
-		self:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
-	end
-
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_REGEN_ENABLED")
 	self:RegisterUnitEvent("UNIT_DISPLAYPOWER", "player")
@@ -2021,7 +2010,6 @@ function SCMResourceBarControllerMixin:RefreshResourceBars(refreshTicks, options
 		Utils.UnregisterAnchorVisibility(self)
 		SCM:ApplyResourceBarAttributeDriver(true)
 		self:UnregisterAllEvents()
-		StopManaTick(self)
 
 		self.SCMResourceBarEventsRegistered = false
 		self:SetScript("OnUpdate", nil)
@@ -2128,10 +2116,6 @@ function SCM:ResetResourceBar()
 
 	local primaryBar = container.PrimaryBar or _G["SCM_PrimaryResourceBar"]
 	local secondaryBar = container.SecondaryBar or _G["SCM_SecondaryResourceBar"]
-
-	if container.SCMResourceBarInitialized then
-		StopManaTick(container)
-	end
 
 	SCM.UnregisterCallback(container, ANCHOR_PROXY_SIZE_CHANGED_EVENT)
 	Utils.UnregisterAnchorVisibility(container)

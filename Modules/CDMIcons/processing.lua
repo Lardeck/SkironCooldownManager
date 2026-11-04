@@ -70,7 +70,7 @@ local function ProcessBuffBar(child, options, refreshOptions, refreshGlowOptions
 end
 
 local function ProcessSingleChild(child, validChildren, categoryIndex, isBuffIcon, options, refreshOptions, refreshGlowOptions)
-	if not child.Icon or not child.GetCooldownID then
+	if not child.Icon then
 		return
 	end
 

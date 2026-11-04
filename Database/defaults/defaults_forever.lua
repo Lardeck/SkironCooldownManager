@@ -3,26 +3,20 @@ local SCM = select(2, ...)
 SCM.DefaultDB.profile.options.castBar.anchors = { "BOTTOM", "ANCHOR:1", "TOP", 0, 0 }
 SCM.DefaultDB.profile.options.resourceBar.anchorFrame = "SCM_CastBar"
 
-SCM.DefaultDB.profile.options.resourceBar.manaTickSpark = {
-	enable = true,
-	reverseFill = false,
-	style = "texture",
-	width = 4,
-	height = 20,
-	color = { r = 1, g = 1, b = 1, a = 1 },
-	texture = "Solid",
-	xOffset = 0,
-	yOffset = 0,
-	useCustomTexture = false,
-	blendMode = "ADD",
-}
-
 for _, barKey in ipairs({ "primaryBar", "secondaryBar" }) do
-	local barOptions = SCM.DefaultDB.profile.options.resourceBar[barKey]
-	barOptions.druidFormPowerTypes = barOptions.druidFormPowerTypes[102]
-	if barKey == "primaryBar" then
-		barOptions.druidFormPowerTypes[4] = Enum.PowerType.Mana
-	end
+	SCM.DefaultDB.profile.options.resourceBar[barKey].manaTickSpark = {
+		enable = true,
+		reverseFill = false,
+		style = "texture",
+		width = 4,
+		height = 20,
+		color = { r = 1, g = 1, b = 1, a = 1 },
+		texture = "Solid",
+		xOffset = 0,
+		yOffset = 0,
+		useCustomTexture = false,
+		blendMode = "ADD",
+	}
 end
 
 SCM.DefaultSwingTimerBreakpoints = {

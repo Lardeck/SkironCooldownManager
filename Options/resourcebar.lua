@@ -13,7 +13,7 @@ local RESOURCE_BAR_GROW_DIRECTIONS = {
 }
 
 local RESOURCE_BAR_TABS = {
-	{ value = "General", text = "General" },
+	{ value = "Layout", text = "Layout" },
 	{ value = "Primary", text = "Primary" },
 	{ value = "Secondary", text = "Secondary" },
 }
@@ -643,16 +643,6 @@ local function AddTextSettings(parent, settings)
 	end)
 	textSettings:AddChild(showPercentageSign)
 
-	local showRawMana = AceGUI:Create("CheckBox")
-	showRawMana:SetRelativeWidth(0.25)
-	showRawMana:SetLabel("Show Raw Mana")
-	showRawMana:SetValue(settings.showRawMana)
-	showRawMana:SetCallback("OnValueChanged", function(_, _, value)
-		settings.showRawMana = value
-		RefreshResourceBars()
-	end)
-	textSettings:AddChild(showRawMana)
-
 	local font = AceGUI:Create("LSM30_Font")
 	font:SetLabel("Text Font")
 	font:SetRelativeWidth(0.25)
@@ -841,10 +831,7 @@ local function AddBarSettings(parent, title, settings, includeManaRoleSettings, 
 	else
 		if UnitClassBase("player") == "DRUID" then
 			local powerTypeList = title == "Primary" and CONSTANTS.RESOURCE_BAR.DRUID_PRIMARY_POWER_TYPES or CONSTANTS.RESOURCE_BAR.DRUID_SECONDARY_POWER_TYPES
-			local druidFormPowerTypes = settings.druidFormPowerTypes
-			if not SCM.isForever then
-				druidFormPowerTypes = druidFormPowerTypes[SCM.currentSpecID] or druidFormPowerTypes
-			end
+			local druidFormPowerTypesBySpec = settings.druidFormPowerTypes
 
 			local druidSettings = AceGUI:Create("InlineGroup")
 			druidSettings:SetFullWidth(true)
@@ -852,6 +839,8 @@ local function AddBarSettings(parent, title, settings, includeManaRoleSettings, 
 			druidSettings:SetLayout("flow")
 			parent:AddChild(druidSettings)
 
+			local specID = SCM.currentSpecID
+			local druidFormPowerTypes = druidFormPowerTypesBySpec[specID]
 			local function AddDruidFormDropdown(parentGroup, druidFormPowerTypes, formID, label)
 				local formDropdown = AceGUI:Create("Dropdown")
 				formDropdown:SetRelativeWidth(0.33)
@@ -944,6 +933,9 @@ local function AddBarSettings(parent, title, settings, includeManaRoleSettings, 
 			AddTickSettings(widget, settings)
 		elseif group == "Spark" then
 			AddSparkSettings(widget, settings.spark, "Spark")
+			if SCM.isForever then
+				AddSparkSettings(widget, settings.manaTickSpark, "Mana Tick Spark")
+			end
 		elseif group == "Border" then
 			AddBorderSettings(widget, settings)
 		elseif group == "Text" then
@@ -992,14 +984,12 @@ local function SelectResourceBarTab(tabGroup, group, settings)
 	scrollFrame:SetLayout("flow")
 	tabGroup:AddChild(scrollFrame)
 
-	if group == "General" then
+	if group == "Layout" then
 		AddLayoutSettings(scrollFrame, settings)
 		AddPositionSettings(scrollFrame, settings)
 		AddPowerTypeColorSettings(scrollFrame, settings)
 
-		if SCM.isForever then
-			AddSparkSettings(scrollFrame, settings.manaTickSpark, "Mana Tick Spark")
-		else
+		if not SCM.isForever then
 			AddSpecialColorSettings(scrollFrame, settings)
 		end
 	elseif group == "Primary" then
@@ -1068,7 +1058,7 @@ local function ResourceBar(self)
 	end)
 	statusGroup:AddChild(resetCurrentOverride)
 
-	local currentTab = "General"
+	local currentTab = "Layout"
 	local resourceBarTabs = AceGUI:Create("TabGroup")
 	resourceBarTabs:SetTabs(RESOURCE_BAR_TABS)
 	resourceBarTabs:SetFullWidth(true)
@@ -1078,7 +1068,7 @@ local function ResourceBar(self)
 		currentTab = group
 		SelectResourceBarTab(widget, group, SCM.resourceBarConfig)
 	end)
-	resourceBarTabs:SelectTab("General")
+	resourceBarTabs:SelectTab("Layout")
 	resourceBarFrame:AddChild(resourceBarTabs)
 
 	resetCurrentOverride:SetCallback("OnClick", function()
