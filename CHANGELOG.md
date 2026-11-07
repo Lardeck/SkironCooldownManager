@@ -1,5 +1,5 @@
-### Version 1.7.1 [Release]
+### Version 1.7.2 [Release]
 
 Fixes:
 
-- Fix exporting and importing specific classes in Forever
+- Fix the first combo point not showing after switching targets in Forever

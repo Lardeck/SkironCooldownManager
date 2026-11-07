@@ -1224,6 +1224,7 @@ local function RegisterBarEvents(bar, barOptions)
 
 	if bar.SCMRegisterPlayerTarget then
 		bar:RegisterEvent("PLAYER_TARGET_CHANGED")
+		bar:RegisterEvent("COMBO_TARGET_CHANGED")
 	end
 
 	if bar.resourceKind == "runes" then
