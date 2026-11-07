@@ -122,13 +122,15 @@ function Profiles.ImportProfileData(db, typeID, payload, importSettings)
 			end
 		elseif typeID == EXPORT_TYPE.CLASS then
 			if selectedSpec then
-				local classFileName = importAllClasses and select(6, GetSpecializationInfoByID(selectedSpec)) or selectedClass
+				local classFileName = importAllClasses and (payload.classFileName or select(6, GetSpecializationInfoByID(selectedSpec))) or selectedClass
 
 				ImportSpec(db, classFileName, selectedSpec, data[selectedSpec] or data[selectedSpecKey], excludeIcons, sharedSettings)
 			else
 				for specID, specConfig in pairs(data) do
 					local specIDNumber = tonumber(specID) or specID
-					local classFileName = select(6, GetSpecializationInfoByID(specIDNumber))
+					local classFileName = payload.classFileName
+						or (SCM.isForever and (importAllClasses and SCM.Utils.GetClass() or selectedClass))
+						or select(6, GetSpecializationInfoByID(specIDNumber))
 
 					if importAllClasses or selectedClass == classFileName then
 						ImportSpec(db, classFileName, specIDNumber, specConfig, excludeIcons, sharedSettings)

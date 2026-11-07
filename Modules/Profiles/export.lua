@@ -87,6 +87,7 @@ local function BuildProfileExportPayload(self, exportType, classFileName, specID
 
 	local options = self.db.profile.options
 	local payload = {
+		classFileName = exportType == EXPORT_TYPE.CLASS and classFileName or nil,
 		profileData = GetProfileExportData(self.db.profile, exportType, classFileName, specID, exportOptions),
 	}
 
