@@ -1,5 +1,5 @@
-### Version 1.7.2 [Release]
+### Version 1.7.3 [Release]
 
-Fixes:
+Additions:
 
-- Fix the first combo point not showing after switching targets in Forever
+- Add the option to show the mana percentage and value at the same time

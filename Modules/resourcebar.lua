@@ -1663,13 +1663,31 @@ function SCMResourceBarControllerMixin:UpdateBarDisplay(bar, currentValue, maxVa
 		else
 			textValue:SetText(floor(staggerPercent * 100 + 0.5))
 		end
-	elseif bar.powerType == Enum.PowerType.Mana and not barOptions.showRawMana then
-		local manaPercent = UnitPowerPercent("player", bar.powerType, false, CurveConstants.ScaleTo100)
+	elseif bar.powerType == Enum.PowerType.Mana then
 
-		if barOptions.showPercentageSign then
-			textValue:SetText(string.format("%d%%", manaPercent))
+		local manaValueText
+		if barOptions.showRawMana then
+			manaValueText = AbbreviateLargeNumbers(displayValue)
+		end
+
+		local manaPercentText
+		if barOptions.showPercentMana or (barOptions.showPercentMana == nil and not barOptions.showRawMana) then
+			local manaPercent = UnitPowerPercent("player", bar.powerType, false, CurveConstants.ScaleTo100)
+			if barOptions.showPercentageSign then
+				manaPercentText = string.format("%d%%", manaPercent)
+			else
+				manaPercentText = string.format("%d", manaPercent)
+			end
+		end
+
+		if manaValueText and manaPercentText then
+			if barOptions.manaValueOrder == 1 then
+				textValue:SetText(string.format("%s - %s", manaValueText, manaPercentText))
+			elseif barOptions.manaValueOrder == 2 then
+				textValue:SetText(string.format("%s - %s", manaPercentText, manaValueText))
+			end
 		else
-			textValue:SetText(string.format("%d", manaPercent))
+			textValue:SetText(manaValueText or manaPercentText)
 		end
 	else
 		textValue:SetText(AbbreviateLargeNumbers(displayValue))

@@ -3,7 +3,7 @@ local AceGUI = LibStub("AceGUI-3.0")
 local LSM = LibStub("LibSharedMedia-3.0")
 local CONSTANTS = SCM.Constants
 local Options = SCM.Options
-local RESOURCE_BAR_POWER_TYPES = SCM.Constants.RESOURCE_BAR.POWER_TYPES
+local RESOURCE_BAR_POWER_TYPES = CONSTANTS.RESOURCE_BAR.POWER_TYPES
 
 SCM.MainTabs.ResourceBar = { value = "ResourceBar", text = "Resource Bar", order = 5, subgroups = {} }
 
@@ -221,7 +221,7 @@ local function AddPositionSettings(parent, settings)
 	local anchorPoint = AceGUI:Create("Dropdown")
 	anchorPoint:SetRelativeWidth(0.33)
 	anchorPoint:SetLabel("Anchor Point")
-	anchorPoint:SetList(SCM.Constants.GENERAL.ANCHOR_POINTS)
+	anchorPoint:SetList(CONSTANTS.GENERAL.ANCHOR_POINTS)
 	anchorPoint:SetValue(settings.point)
 	anchorPoint:SetCallback("OnValueChanged", function(_, _, value)
 		settings.point = value
@@ -254,7 +254,7 @@ local function AddPositionSettings(parent, settings)
 	local relativePoint = AceGUI:Create("Dropdown")
 	relativePoint:SetRelativeWidth(0.33)
 	relativePoint:SetLabel("Relative Point")
-	relativePoint:SetList(SCM.Constants.GENERAL.ANCHOR_POINTS)
+	relativePoint:SetList(CONSTANTS.GENERAL.ANCHOR_POINTS)
 	relativePoint:SetValue(settings.relativePoint)
 	relativePoint:SetCallback("OnValueChanged", function(_, _, value)
 		settings.relativePoint = value
@@ -488,7 +488,7 @@ local function AddSparkSettings(parent, sparkOptions, title)
 
 	local blendMode = AceGUI:Create("Dropdown")
 	blendMode:SetRelativeWidth(0.33)
-	blendMode:SetList(SCM.Constants.GENERAL.BLEND_MODE, SCM.Constants.GENERAL.BLEND_MODE_SORTED)
+	blendMode:SetList(CONSTANTS.GENERAL.BLEND_MODE, CONSTANTS.GENERAL.BLEND_MODE_SORTED)
 	blendMode:SetLabel("Blend Mode")
 	blendMode:SetValue(sparkOptions.blendMode)
 	blendMode:SetCallback("OnValueChanged", function(_, _, value)
@@ -624,7 +624,7 @@ local function AddTextSettings(parent, settings)
 	parent:AddChild(textSettings)
 
 	local showValues = AceGUI:Create("CheckBox")
-	showValues:SetRelativeWidth(0.25)
+	showValues:SetRelativeWidth(0.33)
 	showValues:SetLabel("Show Text")
 	showValues:SetValue(settings.showValues)
 	showValues:SetCallback("OnValueChanged", function(_, _, value)
@@ -633,29 +633,9 @@ local function AddTextSettings(parent, settings)
 	end)
 	textSettings:AddChild(showValues)
 
-	local showPercentageSign = AceGUI:Create("CheckBox")
-	showPercentageSign:SetRelativeWidth(0.25)
-	showPercentageSign:SetLabel("Show Percent Sign")
-	showPercentageSign:SetValue(settings.showPercentageSign)
-	showPercentageSign:SetCallback("OnValueChanged", function(_, _, value)
-		settings.showPercentageSign = value
-		RefreshResourceBars()
-	end)
-	textSettings:AddChild(showPercentageSign)
-
-	local showRawMana = AceGUI:Create("CheckBox")
-	showRawMana:SetRelativeWidth(0.25)
-	showRawMana:SetLabel("Show Raw Mana")
-	showRawMana:SetValue(settings.showRawMana)
-	showRawMana:SetCallback("OnValueChanged", function(_, _, value)
-		settings.showRawMana = value
-		RefreshResourceBars()
-	end)
-	textSettings:AddChild(showRawMana)
-
 	local font = AceGUI:Create("LSM30_Font")
 	font:SetLabel("Text Font")
-	font:SetRelativeWidth(0.25)
+	font:SetRelativeWidth(0.33)
 	font:SetList(LSM:HashTable("font"))
 	font:SetValue(settings.font)
 	font:SetCallback("OnValueChanged", function(self, _, value)
@@ -666,7 +646,7 @@ local function AddTextSettings(parent, settings)
 	textSettings:AddChild(font)
 
 	local textOutline = AceGUI:Create("Dropdown")
-	textOutline:SetRelativeWidth(0.25)
+	textOutline:SetRelativeWidth(0.33)
 	textOutline:SetLabel("Outline")
 	textOutline:SetList(CONSTANTS.GENERAL.TEXT_OUTLINE, CONSTANTS.GENERAL.TEXT_OUTLINE_SORTED)
 	textOutline:SetValue(settings.textOutline)
@@ -708,6 +688,47 @@ local function AddTextSettings(parent, settings)
 		RefreshResourceBars()
 	end)
 	textSettings:AddChild(valueYOffset)
+
+	local showPercentMana = AceGUI:Create("CheckBox")
+	showPercentMana:SetRelativeWidth(0.25)
+	showPercentMana:SetLabel("Show Percent Mana")
+	showPercentMana:SetValue(settings.showPercentMana or (settings.showPercentMana == nil and not settings.showRawMana))
+	showPercentMana:SetCallback("OnValueChanged", function(_, _, value)
+		settings.showPercentMana = value
+		RefreshResourceBars()
+	end)
+	textSettings:AddChild(showPercentMana)
+
+	local showPercentageSign = AceGUI:Create("CheckBox")
+	showPercentageSign:SetRelativeWidth(0.25)
+	showPercentageSign:SetLabel("Show Percent Sign")
+	showPercentageSign:SetValue(settings.showPercentageSign)
+	showPercentageSign:SetCallback("OnValueChanged", function(_, _, value)
+		settings.showPercentageSign = value
+		RefreshResourceBars()
+	end)
+	textSettings:AddChild(showPercentageSign)
+
+	local showRawMana = AceGUI:Create("CheckBox")
+	showRawMana:SetRelativeWidth(0.25)
+	showRawMana:SetLabel("Show Raw Mana")
+	showRawMana:SetValue(settings.showRawMana)
+	showRawMana:SetCallback("OnValueChanged", function(_, _, value)
+		settings.showRawMana = value
+		RefreshResourceBars()
+	end)
+	textSettings:AddChild(showRawMana)
+
+	local manaValueOrder = AceGUI:Create("Dropdown")
+	manaValueOrder:SetRelativeWidth(0.25)
+	manaValueOrder:SetList(CONSTANTS.RESOURCE_BAR.MANA_VALUE_ORDER)
+	manaValueOrder:SetLabel("Mana Value Order")
+	manaValueOrder:SetValue(settings.manaValueOrder)
+	manaValueOrder:SetCallback("OnValueChanged", function(_, _, value)
+		settings.manaValueOrder = value
+		RefreshResourceBars()
+	end)
+	textSettings:AddChild(manaValueOrder)
 end
 
 local function AddBarSettings(parent, title, settings, includeManaRoleSettings, globalSettings)
@@ -801,7 +822,7 @@ local function AddBarSettings(parent, title, settings, includeManaRoleSettings, 
 
 	local frameStrata = AceGUI:Create("Dropdown")
 	frameStrata:SetRelativeWidth(0.33)
-	frameStrata:SetList(SCM.Constants.GENERAL.FRAME_STRATA, SCM.Constants.GENERAL.FRAME_STRATA_SORTED)
+	frameStrata:SetList(CONSTANTS.GENERAL.FRAME_STRATA, CONSTANTS.GENERAL.FRAME_STRATA_SORTED)
 	frameStrata:SetLabel("Frame Strata")
 	frameStrata:SetValue(settings.frameStrata or globalSettings.frameStrata or "BACKGROUND")
 	frameStrata:SetCallback("OnValueChanged", function(_, _, value)
@@ -827,13 +848,13 @@ local function AddBarSettings(parent, title, settings, includeManaRoleSettings, 
 			local hideManaRoles = AceGUI:Create("Dropdown")
 			hideManaRoles:SetRelativeWidth(0.33)
 			hideManaRoles:SetLabel("Hide Mana For Roles")
-			hideManaRoles:SetList(SCM.Constants.CHARACTER.ROLES)
+			hideManaRoles:SetList(CONSTANTS.CHARACTER.ROLES)
 			hideManaRoles:SetMultiselect(true)
 			hideManaRoles:SetCallback("OnValueChanged", function(_, _, key, value)
 				settings.hideManaRoles[key] = value
 				RefreshResourceBars()
 			end)
-			for key in pairs(SCM.Constants.CHARACTER.ROLES) do
+			for key in pairs(CONSTANTS.CHARACTER.ROLES) do
 				hideManaRoles:SetItemValue(key, hideManaRoleSettings[key])
 			end
 			generalSettings:AddChild(hideManaRoles)

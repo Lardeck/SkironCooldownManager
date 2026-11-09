@@ -71,4 +71,9 @@ SCM.Constants.RESOURCE_BAR = {
 	SEGMENT_TICKS_BY_POWER_TOKEN = {
 		COMBO_POINTS = true,
 	},
+
+	MANA_VALUE_ORDER = {
+		[1] = "Raw - Percent",
+		[2] = "Percent - Raw",
+	}
 }
