@@ -71,6 +71,14 @@ local presetButtonConfigs = {
 			},
 		},
 		{
+			text = "|T7816859:16:16|t Liquid Luster",
+			configID = 1295132,
+			iconType = "timer",
+			config = {
+				duration = 30,
+			},
+		},
+		{
 			text = "|T133876:16:16|t Algeth'ar Puzzle Box",
 			configID = 383781,
 			iconType = "timer",
@@ -112,7 +120,7 @@ local presetButtonConfigs = {
 			config = {
 				customItems = {
 					[1] = 271883,
- 					[2] = 241304,
+					[2] = 241304,
 					[3] = 241305,
 				},
 			},
@@ -150,6 +158,19 @@ local presetButtonConfigs = {
 					[1] = 245903,
 					[2] = 241288,
 					[3] = 241289,
+				},
+			},
+		},
+		{
+			text = "|T7816859:16:16|t Liquid Luster",
+			configID = 271887,
+			iconType = "item",
+			hidden = SCM.isForever,
+			config = {
+				customItems = {
+					[1] = 274764,
+					[2] = 271887,
+					[3] = 271886,
 				},
 			},
 		},
@@ -505,7 +526,6 @@ local function ProcessAndCreateButtons(parentButton, items, isBuffIcon, scrollFr
 				trinketSlots[info.equipSlot] = (trinketSlots[info.equipSlot] or 0) + 1
 				buttonName, texture = CDMOptions.GetItemIconData(info, item.category, activeColor, trinketSlots[info.equipSlot])
 			elseif info.spellID then
-
 				local spellTexture = C_Spell.GetSpellTexture(info.spellID)
 				if item.sortName and spellTexture then
 					buttonName = string.format("|T%d:0|t |cff%s%s (%d)|r", spellTexture, activeColor, item.sortName, info.spellID)
