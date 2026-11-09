@@ -777,6 +777,8 @@ function SCM:UpdateCastBar()
 		self:RefreshCastBarWidth(0.1)
 		PlayerCastingBarFrame:UnregisterAllEvents()
 		OverlayPlayerCastingBarFrame:UnregisterAllEvents()
+		PlayerCastingBarFrame.ignoreInLayout = true
+		PlayerCastingBarFrame:BreakFromFrameManager()
 	else
 		castBar:SetScript("OnEvent", nil)
 		castBar:UnregisterAllEvents()
