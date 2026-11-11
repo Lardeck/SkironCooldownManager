@@ -9,6 +9,8 @@ local Utils = SCM.Utils
 local ToGlobalGroup = Utils.ToGlobalGroup
 local ToBuffBarGroup = Utils.ToBuffBarGroup
 local UPDATE_SCOPE = SCM.CDM.UPDATE_SCOPE
+local activeSwipeConfig = SCM.Defaults.ActiveSwipeCooldownIDs
+local activeSwipeSpells = activeSwipeConfig.version == select(4, GetBuildInfo()) and SCM.DefaultDB.profile.options.debuffs
 
 StaticPopupDialogs["SCM_FORCE_RELOAD_POPUP"] = {
 	text = "%s",
@@ -39,13 +41,17 @@ function SCM.ShowReloadPopup(data)
 	StaticPopup_Show("SCM_FORCE_RELOAD_POPUP", "This requires a UI reload. Reload now?", nil, data)
 end
 
-function SCM.IsActiveSwipeDisabled(spellID, options)
+function SCM.IsActiveSwipeDisabled(child, options)
 	if options.disableRegularIconActiveSwipe then
 		return true
 	end
 
 	if options.limitActiveSwipeToSelectedSpell then
-		local selectedSpell = options.debuffs[spellID]
+		local spellID = activeSwipeSpells and activeSwipeSpells[child.SCMSpellID] and child.SCMSpellID
+		if not spellID and activeSwipeSpells and not child.SCMCustom then
+			spellID = activeSwipeConfig.cooldownIDs[child.SCMCooldownID]
+		end
+		local selectedSpell = spellID and options.debuffs[spellID]
 		return not selectedSpell or not selectedSpell.enabled
 	end
 end

@@ -281,7 +281,7 @@ local function ApplyCooldownRules(child, state, effectConfig, cooldownRuleState,
 	end
 
 	local options = SCM.db.profile.options
-	local hideActiveSwipe = (SCM.IsActiveSwipeDisabled(child.SCMSpellID, options) or child.SCMConfig.hideActiveSwipe) and not child.SCMConfig.forceActiveSwipe
+	local hideActiveSwipe = (SCM.IsActiveSwipeDisabled(child, options) or child.SCMConfig.hideActiveSwipe) and not child.SCMConfig.forceActiveSwipe
 	local showActiveSwipe = child.Cooldown:GetUseAuraDisplayTime() and not hideActiveSwipe
 	local isRecharging = cooldownRuleState == "recharging" and not showActiveSwipe
 	child.Cooldown:SetDrawEdge(isRecharging)
@@ -348,7 +348,7 @@ local function ApplyStateOptions(child, skipLayoutRefresh, state, refreshGlowOpt
 	local desaturateRules = effectRules.desaturate and effectRules.desaturate.rules
 	local shouldDesaturate
 	if desaturateRules and desaturateRules[1] then
-		local rule = GetNextMatchedRule(desaturateRules, 1, cooldownRuleState, activeRuleState, overriddenRuleState, SCM.IsActiveSwipeDisabled(child.SCMSpellID, SCM.db.profile.options) and not child.SCMConfig.forceActiveSwipe and not child.SCMBuffOptions and not child.SCMBuffBar)
+		local rule = GetNextMatchedRule(desaturateRules, 1, cooldownRuleState, activeRuleState, overriddenRuleState, SCM.IsActiveSwipeDisabled(child, SCM.db.profile.options) and not child.SCMConfig.forceActiveSwipe and not child.SCMBuffOptions and not child.SCMBuffBar)
 		if rule and rule.enabled ~= nil then
 			shouldDesaturate = rule.enabled and true or false
 		end

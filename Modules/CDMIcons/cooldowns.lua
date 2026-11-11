@@ -127,7 +127,7 @@ function Cooldowns.SetNormalCooldown(self, parent)
 	local options = SCM.db.profile.options
 	local useAuraDisplayTime = self:GetUseAuraDisplayTime()
 	local childConfig = parent.SCMConfig
-	local shouldReplaceActiveSwipe = (childConfig.hideActiveSwipe or SCM.IsActiveSwipeDisabled(parent.SCMSpellID, options)) and not childConfig.forceActiveSwipe
+	local shouldReplaceActiveSwipe = (childConfig.hideActiveSwipe or SCM.IsActiveSwipeDisabled(parent, options)) and not childConfig.forceActiveSwipe
 
 	if useAuraDisplayTime and not shouldReplaceActiveSwipe then
 		return
@@ -153,7 +153,7 @@ end
 
 function Cooldowns.OverrideRegularAuraCooldown(self, parent, options)
 	local config = parent.SCMConfig
-	if not self:GetUseAuraDisplayTime() or config.forceActiveSwipe or not (SCM.IsActiveSwipeDisabled(parent.SCMSpellID, options) or config.hideActiveSwipe) then
+	if not self:GetUseAuraDisplayTime() or config.forceActiveSwipe or not (SCM.IsActiveSwipeDisabled(parent, options) or config.hideActiveSwipe) then
 		return
 	end
 
@@ -184,7 +184,7 @@ local function UpdateViewerChildrenForSpellOverride(viewer, spellID, overrideSpe
 		local config = child.SCMConfig
 		if config and not child.SCMBuffBar and child.SCMSpellID == spellID then
 			States.SetOverriddenState(child, overrideSpellID and true or false)
-			if cooldownInfo and not config.forceActiveSwipe and (config.hideActiveSwipe or SCM.IsActiveSwipeDisabled(child.SCMSpellID, options)) then
+			if cooldownInfo and not config.forceActiveSwipe and (config.hideActiveSwipe or SCM.IsActiveSwipeDisabled(child, options)) then
 				SetRegularChildCooldown(child)
 			end
 		end
@@ -207,7 +207,7 @@ local function OnRegularCooldownChanged(self, changeType)
 	local useAuraDisplayTime = self:GetUseAuraDisplayTime()
 
 	if useAuraDisplayTime then
-		if not config.forceActiveSwipe and (config.hideActiveSwipe or SCM.IsActiveSwipeDisabled(parent.SCMSpellID, options)) then
+		if not config.forceActiveSwipe and (config.hideActiveSwipe or SCM.IsActiveSwipeDisabled(parent, options)) then
 			Cooldowns.OverrideRegularAuraCooldown(self, parent, options)
 		end
 	elseif (options.disableGCD and IsChildOnGlobalCooldown(parent)) or (changeType == "CLEAR" and parent.SCMSpellID and CONSTANTS.FIX_BLIZZARD_SPELLS[parent.SCMSpellID]) then

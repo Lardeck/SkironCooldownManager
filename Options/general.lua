@@ -173,8 +173,15 @@ end
 
 local function GetDebuffsByClass(debuffOptions)
 	local debuffsByClass = {}
+	local config = SCM.Defaults.ActiveSwipeCooldownIDs
+	if config.version ~= SCM.build then
+		return debuffsByClass
+	end
+	local spellIDs = config.spellIDs
 
-	for spellID, debuff in pairs(debuffOptions) do
+	for configID in pairs(SCM.DefaultDB.profile.options.debuffs) do
+		local debuff = debuffOptions[configID]
+		local spellID = spellIDs and spellIDs[configID] or configID
 		local classDebuffs = debuffsByClass[debuff.class]
 		if not classDebuffs then
 			classDebuffs = {}
@@ -182,6 +189,7 @@ local function GetDebuffsByClass(debuffOptions)
 		end
 
 		classDebuffs[#classDebuffs + 1] = {
+			configID = configID,
 			spellID = spellID,
 			name = C_Spell.GetSpellName(spellID) or tostring(spellID),
 		}
@@ -633,9 +641,9 @@ local function SelectGlobalSettingsTab(tabWidget, scrollFrame, group, options)
 				debuffToggle:SetRelativeWidth(0.5)
 				debuffToggle:SetImage(C_Spell.GetSpellTexture(debuffSpellID))
 				debuffToggle:SetLabel(string.format("%s (%d)", debuffInfo.name, debuffSpellID))
-				debuffToggle:SetValue(options.debuffs[debuffSpellID].enabled)
+				debuffToggle:SetValue(options.debuffs[debuffInfo.configID].enabled)
 				debuffToggle:SetCallback("OnValueChanged", function(_, _, value)
-					options.debuffs[debuffSpellID].enabled = value
+					options.debuffs[debuffInfo.configID].enabled = value
 				end)
 				self:AddChild(debuffToggle)
 			end
@@ -645,7 +653,9 @@ local function SelectGlobalSettingsTab(tabWidget, scrollFrame, group, options)
 			scrollFrame:DoLayout()
 		end)
 		activeSwipeSettings:AddChild(debuffSettings)
-		debuffSettings:SelectTab(classTabs[1].value)
+		if classTabs[1] then
+			debuffSettings:SelectTab(classTabs[1].value)
+		end
 	elseif group == "Icons" then
 		local iconSettings = AceGUI:Create("InlineGroup")
 		iconSettings:SetLayout("flow")

@@ -1,5 +1,33 @@
 local SCM = select(2, ...)
 
+SCM.Defaults.ActiveSwipeCooldownIDs = {
+	version = 16001,
+	spellIDs = { [315496] = 5171, [470411] = 8050 },
+	cooldownIDs = {
+		[199455] = 8921, [199545] = 8921,
+		[199495] = 1822, [199526] = 1822,
+		[199499] = 1079, [199530] = 1079,
+		[200300] = 26573,
+		[200056] = 10060, [200057] = 10060, [200454] = 10060,
+		[199980] = 589, [199988] = 589,
+		[200248] = 315496, [200249] = 315496,
+		[200246] = 1943, [200247] = 1943,
+		[200242] = 703, [200461] = 703,
+		[200324] = 470411, [200329] = 470411,
+		[199797] = 348, [199805] = 348,
+		[199762] = 172, [199769] = 172,
+		[199777] = 980, [200526] = 980,
+		[199656] = 772, [199859] = 772,
+	},
+}
+
+local defaultDebuffs = SCM.DefaultDB.profile.options.debuffs
+local debuffs = {}
+for _, spellID in pairs(SCM.Defaults.ActiveSwipeCooldownIDs.cooldownIDs) do
+	debuffs[spellID] = defaultDebuffs[spellID]
+end
+SCM.DefaultDB.profile.options.debuffs = debuffs
+
 SCM.DefaultDB.profile.options.castBar.anchors = { "BOTTOM", "ANCHOR:1", "TOP", 0, 0 }
 SCM.DefaultDB.profile.options.resourceBar.anchorFrame = "SCM_CastBar"
 

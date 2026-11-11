@@ -182,7 +182,7 @@ local function ApplyCooldownSwipe(cooldownFrame, options)
 
 	local childConfig = parent.SCMConfig or {}
 	if cooldownFrame:GetUseAuraDisplayTime() or parent.SCMFakeAuraInstanceID or parent.SCMBuffOptions then
-		if (SCM.IsActiveSwipeDisabled(parent.SCMSpellID, options) or childConfig.hideActiveSwipe) and not childConfig.forceActiveSwipe then
+		if (SCM.IsActiveSwipeDisabled(parent, options) or childConfig.hideActiveSwipe) and not childConfig.forceActiveSwipe then
 			if options.recolorNormalSwipe then
 				cooldownFrame:SetSwipeColor(unpack(options.normalSwipeColor))
 			else
