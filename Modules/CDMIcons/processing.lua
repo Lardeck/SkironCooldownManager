@@ -3,6 +3,7 @@ local SCM = select(2, ...)
 local Cooldowns = SCM.Cooldowns
 local Cache = SCM.Cache
 local Icons = SCM.Icons
+local LoadConditions = SCM.LoadConditions
 local States = SCM.States
 local Utils = SCM.Utils
 local AddChildToGroup = Utils.AddChildToGroup
@@ -81,10 +82,6 @@ local function ProcessSingleChild(child, validChildren, categoryIndex, isBuffIco
 	local info = categoryConfig and (categoryConfig[cooldownID] or SCM.defaultCooldownViewerConfig.cooldownIDs[cooldownID])
 	local spellID = info and (info.overrideTooltipSpellID or info.overrideSpellID or info.spellID)
 
-	if info and info.linkedSpellIDs and #info.linkedSpellIDs == 1 then
-		child.SCMLinkedSpellID = info.linkedSpellIDs[1]
-	end
-
 	local configID, childData = GetSpellConfigByCooldownID(SCM.spellConfig, cooldownID)
 	if not (cooldownID and info and childData) then
 		if child.SCMConfig then
@@ -96,8 +93,6 @@ local function ProcessSingleChild(child, validChildren, categoryIndex, isBuffIco
 		end
 		return
 	end
-
-	child.SCMSpellID = spellID
 
 	local group = Icons.GetConfiguredGroupForCategory(childData, categoryIndex)
 	local groupConfig = childData.anchorGroup and childData.anchorGroup[group]
@@ -112,6 +107,32 @@ local function ProcessSingleChild(child, validChildren, categoryIndex, isBuffIco
 		return
 	end
 
+	if activeScopedAnchorGroups and not activeScopedAnchorGroups[group] then
+		if child.SCMConfig then
+			AddChildToGroup(validChildren, group, child)
+		end
+		return
+	end
+
+	if not LoadConditions.ShouldLoad(groupConfig) then
+		if child.SCMConfig or not child.SCMHidden then
+			Icons.SetChildVisibilityState(child, false, true)
+		end
+		if child.SCMConfig then
+			local stateBorders = child.SCMStateBorders
+			Utils.ResetChildSCMState(child)
+			child.SCMStateBorders = stateBorders
+		end
+		child.SCMCooldownID = cooldownID
+		child.SCMGroup = group
+		return
+	end
+
+	child.SCMSpellID = spellID
+	if info.linkedSpellIDs and #info.linkedSpellIDs == 1 then
+		child.SCMLinkedSpellID = info.linkedSpellIDs[1]
+	end
+
 	AddChildToGroup(validChildren, group, child)
 
 	refreshOptions = refreshOptions or child.SCMConfig ~= groupConfig or child.SCMCooldownID ~= cooldownID
@@ -123,10 +144,6 @@ local function ProcessSingleChild(child, validChildren, categoryIndex, isBuffIco
 	child.SCMGroup = group
 	child.SCMSpellCategoryID = info.spellCategoryID
 	child.SCMEquipSlot = info.equipSlot
-
-	if activeScopedAnchorGroups and not activeScopedAnchorGroups[group] and (child.SCMBuffOptions or child.SCMIconOptions) then
-		return
-	end
 
 	if isBuffIcon then
 		ProcessBuffIcon(child, options, refreshOptions, refreshGlowOptions)

@@ -1,6 +1,7 @@
 local SCM = select(2, ...)
 
 local CustomIcons = SCM.CustomIcons
+local LoadConditions = SCM.LoadConditions
 local Cooldowns = SCM.Cooldowns
 local CDM = SCM.CDM
 local Cache = SCM.Cache
@@ -27,7 +28,7 @@ local function ProcessCustomIcon(id, config, validChildren, refreshOptions, refr
 	end
 
 	local frame = customFrames[id]
-	if frame and CustomIcons.ShouldCreateCustomIcon(config) and CustomIcons.ShouldLoadCustomIcon(config) then
+	if frame and CustomIcons.ShouldCreateCustomIcon(config) and LoadConditions.ShouldLoad(config) then
 		frame:SetFrameLevel(frame:GetFrameLevel() + (SCM.db.profile.options.craftQualityFrameLevel or 3))
 		local iconType = frame.SCMIconType
 		if iconType == "empty" then

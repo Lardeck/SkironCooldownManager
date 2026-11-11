@@ -1,6 +1,7 @@
 local SCM = select(2, ...)
 
 local CustomIcons = SCM.CustomIcons
+local LoadConditions = SCM.LoadConditions
 local Cooldowns = SCM.Cooldowns
 local Cache = SCM.Cache
 local Icons = SCM.Icons
@@ -265,7 +266,7 @@ local function CreateCustomIcon(id, config, isGlobal, skipExisting)
 			return
 		end
 
-		if CustomIcons.ShouldCreateCustomIcon(config) and CustomIcons.ShouldLoadCustomIcon(config) then
+		if CustomIcons.ShouldCreateCustomIcon(config) and LoadConditions.ShouldLoad(config) then
 			local frame = AcquireCustomIconFrame(customFrames, id)
 			ConfigureCustomIconFrame(frame, id, config, config.anchorGroup or 1, isGlobal)
 			CustomIcons.UpdateCustomIconFrameState(frame, config)

@@ -5,6 +5,7 @@ SCM.Options = {}
 SCM.Cache = {}
 SCM.Utils = {}
 SCM.CustomIcons = {}
+SCM.LoadConditions = {}
 SCM.Cooldowns = {}
 SCM.Formatter = {}
 SCM.Icons = {}

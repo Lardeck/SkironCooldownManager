@@ -45,6 +45,7 @@ function SCM:PLAYER_ENTERING_WORLD(isInitialLogin, isReload)
 		eventFrame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
 		eventFrame:RegisterEvent("SPELL_UPDATE_CHARGES")
 		eventFrame:RegisterEvent("SPELL_UPDATE_USES")
+		eventFrame:RegisterEvent("SPELLS_CHANGED")
 		eventFrame:RegisterEvent("SPELL_UPDATE_USABLE")
 		eventFrame:RegisterEvent("SPELL_RANGE_CHECK_UPDATE")
 		eventFrame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
@@ -215,6 +216,22 @@ function SCM:EDIT_MODE_LAYOUTS_UPDATED()
 		self:ApplyOptions()
 	end
 	SCM.RefreshCooldownViewerData(false, true)
+end
+
+local spellBookRefreshQueued
+
+local function RefreshSpellBookLoadConditions()
+	spellBookRefreshQueued = nil
+	SCM:ApplyAllCDManagerConfigs()
+end
+
+function SCM:SPELLS_CHANGED()
+	if spellBookRefreshQueued then
+		return
+	end
+
+	spellBookRefreshQueued = true
+	C_Timer.After(0.1, RefreshSpellBookLoadConditions)
 end
 
 function SCM:TRAIT_CONFIG_UPDATED()

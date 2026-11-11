@@ -1,6 +1,7 @@
 local SCM = select(2, ...)
 
 local CustomIcons = SCM.CustomIcons
+local LoadConditions = SCM.LoadConditions
 local Cooldowns = SCM.Cooldowns
 local Icons = SCM.Icons
 local States = SCM.States
@@ -181,7 +182,7 @@ end
 
 function Cooldowns.UpdateItemCooldownState(frame)
 	local config = frame.SCMConfig
-	if not CustomIcons.ShouldLoadCustomIcon(config) then
+	if not LoadConditions.ShouldLoad(config) then
 		return
 	end
 

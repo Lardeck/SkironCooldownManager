@@ -18,6 +18,7 @@ local function GetSpellAnchorGroupConfig(order, sourceIndex)
 	then
 		return {
 			order = order,
+			useSpellKnown = false,
 			effectRules = {
 				desaturate = {
 					rules = {
@@ -38,6 +39,7 @@ local function GetSpellAnchorGroupConfig(order, sourceIndex)
 
 	return {
 		order = order,
+		useSpellKnown = false,
 		effectRules = {
 			visibility = {
 				rules = {

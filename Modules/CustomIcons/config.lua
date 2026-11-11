@@ -1,6 +1,7 @@
 local SCM = select(2, ...)
 
 local CustomIcons = SCM.CustomIcons
+local LoadConditions = SCM.LoadConditions
 
 function SCM:CreateAllCustomIcons(iconType)
 	CustomIcons.RebuildCustomIconLoadCache()
@@ -71,9 +72,9 @@ function SCM:AddCustomIcon(anchorGroup, iconType, configID, order, uniqueID, isG
 		anchorGroup = anchorGroup,
 		order = order,
 		useLoadClass = false,
-		loadClasses = CustomIcons.GetDefaultLoadClasses(),
+		loadClasses = LoadConditions.GetDefaultLoadClasses(),
 		useLoadRace = false,
-		loadRaces = CustomIcons.GetDefaultLoadRaces(),
+		loadRaces = LoadConditions.GetDefaultLoadRaces(),
 		useLoadRole = false,
 		loadRoles = { ["TANK"] = false, ["HEALER"] = false, ["DAMAGER"] = false },
 		useSpellKnown = false,

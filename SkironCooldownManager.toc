@@ -60,6 +60,7 @@ Modules\skinning.lua
 Modules\elvui_skin.lua
 Utils\utils.lua
 Utils\anchorutils.lua
+Modules\loadconditions.lua
 Modules\CustomIcons\init.lua
 Modules\CustomIcons\load.lua
 Modules\CustomIcons\timers.lua
