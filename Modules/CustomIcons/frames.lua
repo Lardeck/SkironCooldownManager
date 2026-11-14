@@ -118,7 +118,7 @@ local function AcquireCustomIconFrame(customFrames, id)
 
 	if not frame.SCMCustomIconInitialized then
 		frame.Cooldown:SetScript("OnCooldownDone", Cooldowns.OnCustomIconCooldownDone)
-		frame.GCDCooldown:SetScript("OnCooldownDone", Cooldowns.OnCustomIconCooldownDone)
+		frame.GCDCooldown:SetScript("OnCooldownDone", Cooldowns.OnCustomIconGCDDone)
 		frame.Cooldown:SetCountdownFont("GameFontHighlightHugeOutline")
 		frame.Icon:SetTexelSnappingBias(0)
 		frame.Icon:SetSnapToPixelGrid(false)

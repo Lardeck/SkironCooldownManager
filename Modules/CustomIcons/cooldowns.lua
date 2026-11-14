@@ -10,6 +10,17 @@ local ToGlobalGroup = Utils.ToGlobalGroup
 local CustomItemFrames = CustomIcons.ItemFrames
 local CustomSpellFrames = CustomIcons.SpellFrames
 
+function Cooldowns.OnCustomIconGCDDone(self)
+	local parent = self.SCMParent or self:GetParent()
+	if not parent or parent.SCMReleased or not parent.SCMConfig then
+		return
+	end
+
+	parent.SCMGCDStartTime = nil
+	parent.SCMGCDDuration = nil
+	self:Hide()
+end
+
 function Cooldowns.OnCustomIconCooldownDone(self)
 	local parent = self.SCMParent or self:GetParent()
 	if not parent or parent.SCMReleased or not parent.SCMConfig then
