@@ -23,7 +23,7 @@ local function CacheCustomItemEntry(itemID, id, config, isGlobal)
 end
 
 local function RequestCustomItemDataLoad(itemID, requestedItemIDs)
-	if not requestedItemIDs[itemID] then
+	if not requestedItemIDs[itemID] and not C_Item.IsItemDataCachedByID(itemID) then
 		requestedItemIDs[itemID] = true
 		SCM:RegisterEvent("ITEM_DATA_LOAD_RESULT")
 		C_Item.RequestLoadItemDataByID(itemID)
@@ -86,7 +86,7 @@ end
 local function RequestCustomIconDataLoad(config, requestedSpellIDs, requestedItemIDs, slotItemID)
 	local iconType = GetIconType(config)
 	if (iconType == "spell" or iconType == "timer") and config.spellID then
-		if not requestedSpellIDs[config.spellID] then
+		if not requestedSpellIDs[config.spellID] and not C_Spell.IsSpellDataCached(config.spellID) then
 			requestedSpellIDs[config.spellID] = true
 			SCM:RegisterEvent("SPELL_DATA_LOAD_RESULT")
 			C_Spell.RequestLoadSpellData(config.spellID)
