@@ -77,7 +77,6 @@ end
 function CustomIcons.UpdateCustomIconCraftQuality(frame, iconType, config)
 	local craftQuality = frame.CraftQuality
 	local texture = craftQuality.Texture
-	frame:SetFrameLevel(frame:GetFrameLevel() + (SCM.db.profile.options.craftQualityFrameLevel or 3))
 	texture:SetTexture(nil)
 	texture:SetTexelSnappingBias(0)
 	texture:SetSnapToPixelGrid(false)

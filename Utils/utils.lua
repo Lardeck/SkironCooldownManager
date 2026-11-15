@@ -34,7 +34,6 @@ local CHILD_SCM_RESET_FIELDS = {
 	"SCMGlow",
 	"SCMGlowKey",
 	"SCMPendingCustomGlow",
-	"SCMStateBorders",
 	"SCMActiveStateBorders",
 	"SCMActiveGlow",
 	"SCMAnchorFrame",

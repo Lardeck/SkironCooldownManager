@@ -29,7 +29,6 @@ local function ProcessCustomIcon(id, config, validChildren, refreshOptions, refr
 
 	local frame = customFrames[id]
 	if frame and CustomIcons.ShouldCreateCustomIcon(config) and LoadConditions.ShouldLoad(config) then
-		frame:SetFrameLevel(frame:GetFrameLevel() + (SCM.db.profile.options.craftQualityFrameLevel or 3))
 		local iconType = frame.SCMIconType
 		if iconType == "empty" then
 			States.SyncState(frame, true, "ready", true, refreshOptions, refreshGlowOptions)

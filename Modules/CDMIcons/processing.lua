@@ -119,9 +119,7 @@ local function ProcessSingleChild(child, validChildren, categoryIndex, isBuffIco
 			Icons.SetChildVisibilityState(child, false, true)
 		end
 		if child.SCMConfig then
-			local stateBorders = child.SCMStateBorders
 			Utils.ResetChildSCMState(child)
-			child.SCMStateBorders = stateBorders
 		end
 		child.SCMCooldownID = cooldownID
 		child.SCMGroup = group
