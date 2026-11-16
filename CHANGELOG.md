@@ -1,10 +1,10 @@
-### Version 1.7.3-alpha3 [Release]
+### Version 1.7.3-alpha5 [Release]
 
 Additions:
 
-- Add race and spell known load conditions for Cooldown Manager icons
+- Add Faerie Fire to active swipes in Forever
 
 Fixes:
 
-- Fix selected active swipes in Forever and Midnight
-- Fix the missing custom arrow texture for the mana tick spark
+- Improve active state and charge cooldown tracking for Cooldown Manager icons
+- Improve custom icon performance
