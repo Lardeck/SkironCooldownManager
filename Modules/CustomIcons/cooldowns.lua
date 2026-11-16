@@ -104,7 +104,7 @@ function Cooldowns.UpdateCustomIconCooldown(frame, iconType, config)
 			isOnCooldown = true
 		end
 
-		spellCooldown = C_Spell.GetSpellCharges(config.spellID)
+		spellCooldown = not isOnCooldown and C_Spell.GetSpellCharges(config.spellID)
 
 		if not isOnCooldown and spellCooldown and spellCooldown.isActive and not spellCooldown.isOnGCD then
 			frame.Cooldown:Clear()

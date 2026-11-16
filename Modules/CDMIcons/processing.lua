@@ -36,7 +36,7 @@ end
 
 local function ProcessRegularIcon(child, options, refreshOptions, refreshGlowOptions)
 	Icons.SetupRegularIconHooks(child, options)
-	local isActive = (child.Cooldown and child.Cooldown:GetUseAuraDisplayTime()) or false
+	local isActive = Cooldowns.IsRegularIconActive(child)
 	Cooldowns.OverrideRegularAuraCooldown(child.Cooldown, child, options)
 
 	States.SyncState(child, isActive, Cooldowns.GetChildCooldown(child), true, refreshOptions, refreshGlowOptions)

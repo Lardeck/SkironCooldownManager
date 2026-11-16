@@ -50,23 +50,25 @@ local function GetChildCooldownInfo(child, includeGCD)
 	end
 
 	if child.SCMSpellID or child.SCMSpellCategoryID then
-		local cooldownData = SCM.defaultCooldownViewerConfig.cooldownIDs[child.SCMCooldownID]
+		local cooldownData = child:GetCooldownInfo()
 		local spellID = GetChildSpellID(child)
 
 		if spellID then
+			local chargeSpellID = cooldownData and (cooldownData.overrideSpellID or cooldownData.spellID) or spellID
 			local wasSetFromCharges = not issecretvalue(child.wasSetFromCharges) and child.wasSetFromCharges
 			local wasSetFromCooldown = not issecretvalue(child.wasSetFromCooldown) and child.wasSetFromCooldown
 
-			-- I guess just trust Blizzard :). What could go wrong
 			if wasSetFromCharges then
-				local spellCharges = C_Spell.GetSpellCharges(spellID)
+				local spellCharges = C_Spell.GetSpellCharges(chargeSpellID)
 				if spellCharges and spellCharges.isActive then
-					local durationObject = C_Spell.GetSpellChargeDuration(spellID, true)
+					local durationObject = C_Spell.GetSpellChargeDuration(chargeSpellID)
 					if durationObject then
 						return "recharging", durationObject
 					end
 				end
-			elseif wasSetFromCooldown then
+			end
+
+			if wasSetFromCooldown then
 				local spellCooldown = C_Spell.GetSpellCooldown(spellID)
 				if spellCooldown and spellCooldown.isActive and (includeGCD or not spellCooldown.isOnGCD) then
 					local durationObject = C_Spell.GetSpellCooldownDuration(spellID, true)
@@ -83,10 +85,10 @@ local function GetChildCooldownInfo(child, includeGCD)
 					end
 				end
 
-				if cooldownData and cooldownData.charges then
-					local spellCharges = C_Spell.GetSpellCharges(spellID)
+				if not wasSetFromCharges and cooldownData and cooldownData.charges then
+					local spellCharges = C_Spell.GetSpellCharges(chargeSpellID)
 					if spellCharges and spellCharges.isActive then
-						local durationObject = C_Spell.GetSpellChargeDuration(spellID, true)
+						local durationObject = C_Spell.GetSpellChargeDuration(chargeSpellID)
 						if durationObject then
 							return "recharging", durationObject
 						end
@@ -121,6 +123,15 @@ function Cooldowns.GetChildCooldown(child)
 	end
 
 	return cooldownState, durationObject
+end
+
+function Cooldowns.IsRegularIconActive(child)
+	local isActive = child.wasSetFromAura
+	if not issecretvalue(isActive) and isActive ~= nil then
+		return isActive
+	end
+
+	return (child.Cooldown and child.Cooldown:GetUseAuraDisplayTime()) or false
 end
 
 function Cooldowns.SetNormalCooldown(self, parent)
@@ -166,7 +177,7 @@ local function SetRegularChildCooldown(child)
 		return
 	end
 
-	local isActive = cooldownFrame:GetUseAuraDisplayTime()
+	local isActive = Cooldowns.IsRegularIconActive(child)
 	Cooldowns.SetNormalCooldown(cooldownFrame, child)
 	States.SyncState(child, isActive, (Cooldowns.GetChildCooldown(child)))
 end
@@ -215,12 +226,7 @@ local function OnRegularCooldownChanged(self, changeType)
 	end
 
 	RunNextFrame(function()
-		local isActive = useAuraDisplayTime
-		if not issecretvalue(parent.wasSetFromAura) then
-			isActive = parent.wasSetFromAura
-		end
-
-		States.SyncState(parent, isActive, (Cooldowns.GetChildCooldown(parent)))
+		States.SyncState(parent, Cooldowns.IsRegularIconActive(parent), (Cooldowns.GetChildCooldown(parent)))
 	end)
 end
 
