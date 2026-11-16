@@ -4,6 +4,8 @@ SCM.Defaults.ActiveSwipeCooldownIDs = {
 	version = 16001,
 	spellIDs = { [315496] = 5171, [470411] = 8050 },
 	cooldownIDs = {
+		[199443] = 770,
+		[200548] = 770,
 		[199455] = 8921,
 		[199545] = 8921,
 		[199495] = 1822,
@@ -35,10 +37,12 @@ SCM.Defaults.ActiveSwipeCooldownIDs = {
 	},
 }
 
-local defaultDebuffs = SCM.DefaultDB.profile.options.debuffs
-local debuffs = {}
+local sharedDebuffs = SCM.DefaultDB.profile.options.debuffs
+local debuffs = {
+	[770] = { enabled = true, class = "DRUID" },
+}
 for _, spellID in pairs(SCM.Defaults.ActiveSwipeCooldownIDs.cooldownIDs) do
-	debuffs[spellID] = defaultDebuffs[spellID]
+	debuffs[spellID] = debuffs[spellID] or sharedDebuffs[spellID]
 end
 SCM.DefaultDB.profile.options.debuffs = debuffs
 
