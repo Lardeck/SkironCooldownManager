@@ -124,7 +124,7 @@ end
 
 function SCM:PositionHiddenManagedChild(child)
 	SetChildSetPointHook(child)
-	SetChildPoint(child, UIParent, "TOP", 0, 100)
+	SetChildPoint(child, UIParent, "BOTTOM", 0, -100)
 end
 
 local function RemoveProxy(state)

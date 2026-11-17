@@ -1,4 +1,4 @@
-### Version 1.7.3-alpha6 [Release]
+### Version 1.7.3-alpha7 [Release]
 
 Additions:
 
