@@ -189,51 +189,55 @@ local function UpdateResourceBarBackgroundTexture(bar, barOptions)
 	backgroundTexture:Show()
 end
 
+local runeSegments = {}
+
+local function CompareRuneSegments(leftRune, rightRune)
+	if leftRune.remaining == rightRune.remaining then
+		return leftRune.index < rightRune.index
+	end
+
+	return leftRune.remaining < rightRune.remaining
+end
+
 local function GetRuneValues()
-	local fillValue = 0
-	local readyRuneCount = 0
-	local maxRuneCount = 0
-	local runeChargeSegments = {}
+	local runeFillValue, maxRuneCount, readyRuneCount = 0, 0, 0
 	local currentTime = GetTime()
 
 	for runeIndex = 1, 6 do
 		local cooldownStartTime, cooldownDuration, runeReady = GetRuneCooldown(runeIndex)
-		if runeReady ~= nil then
+		if cooldownStartTime then
 			maxRuneCount = maxRuneCount + 1
-			if runeReady then
-				fillValue = fillValue + 1
-				readyRuneCount = readyRuneCount + 1
-				runeChargeSegments[maxRuneCount] = {
-					progress = 1,
-					remaining = 0,
-					index = runeIndex,
-				}
-			elseif cooldownStartTime and cooldownDuration and cooldownDuration > 0 then
-				local elapsedSinceRechargeStart = currentTime - cooldownStartTime
-				local chargeProgress = Clamp(elapsedSinceRechargeStart / cooldownDuration, 0, 1)
-
-				local remaining = cooldownDuration - elapsedSinceRechargeStart
-				if remaining < 0 then
-					remaining = 0
-				end
-
-				runeChargeSegments[maxRuneCount] = {
-					progress = chargeProgress,
-					remaining = remaining,
-					index = runeIndex,
-				}
-				fillValue = fillValue + chargeProgress
-			else
-				runeChargeSegments[maxRuneCount] = {
-					progress = 0,
-					remaining = math.huge,
-					index = runeIndex,
-				}
+			local runeSegment = runeSegments[maxRuneCount]
+			if not runeSegment then
+				runeSegment = {}
+				runeSegments[maxRuneCount] = runeSegment
 			end
+
+			runeSegment.index = runeIndex
+			runeSegment.progress = 0
+			runeSegment.remaining = math.huge
+
+			if runeReady then
+				readyRuneCount = readyRuneCount + 1
+				runeSegment.progress = 1
+				runeSegment.remaining = 0
+			elseif cooldownDuration > 0 then
+				local elapsedSinceRechargeStart = currentTime - cooldownStartTime
+				runeSegment.progress = Clamp(elapsedSinceRechargeStart / cooldownDuration, 0, 1)
+				runeSegment.remaining = max(cooldownDuration - elapsedSinceRechargeStart, 0)
+			end
+
+			runeFillValue = runeFillValue + runeSegment.progress
 		end
 	end
 
-	return fillValue, maxRuneCount, readyRuneCount, runeChargeSegments
+	for runeIndex = maxRuneCount + 1, #runeSegments do
+		runeSegments[runeIndex] = nil
+	end
+
+	table.sort(runeSegments, CompareRuneSegments)
+	runeSegments.recharging = readyRuneCount < maxRuneCount
+	return runeFillValue, maxRuneCount, readyRuneCount, runeSegments
 end
 
 local function GetSoulFragmentValues()
@@ -636,7 +640,6 @@ local function ResetResourceBar(bar)
 	HideManaTick(bar)
 	HideRegions(bar.SegmentTicks)
 	HideSegmentBars(bar.SegmentFillBars)
-	HideRegions(bar.RuneSegmentBars)
 	HideRechargeSegment(bar)
 	HideResourceBarSpark(bar)
 
@@ -898,53 +901,10 @@ local function CreateSegments(bar, segmentCount)
 	return segmentBars
 end
 
-local function GetProgressValues(bar, segmentCount, currentValue, resourceSegmentValues)
-	local segmentProgressValues = {}
-
-	if bar.resourceKind == "runes" then
-		local orderedRuneSegments = {}
-		for runeIndex = 1, segmentCount do
-			orderedRuneSegments[runeIndex] = resourceSegmentValues[runeIndex] or {
-				progress = 0,
-				remaining = math.huge,
-				index = runeIndex,
-			}
-		end
-
-		table.sort(orderedRuneSegments, function(leftRune, rightRune)
-			if leftRune.remaining == rightRune.remaining then
-				return leftRune.index < rightRune.index
-			end
-
-			return leftRune.remaining < rightRune.remaining
-		end)
-
-		for segmentIndex = 1, segmentCount do
-			local runeSegment = orderedRuneSegments[segmentIndex]
-			segmentProgressValues[segmentIndex] = (runeSegment and runeSegment.progress) or 0
-		end
-
-		return segmentProgressValues
-	end
-
-	if bar.powerType == Enum.PowerType.Essence or bar.resourceKind == "destructionSoulShards" then
-		for segmentIndex = 1, segmentCount do
-			segmentProgressValues[segmentIndex] = Clamp(currentValue - (segmentIndex - 1), 0, 1)
-		end
-
-		return segmentProgressValues
-	end
-
-	for segmentIndex = 1, segmentCount do
-		segmentProgressValues[segmentIndex] = (currentValue >= segmentIndex and 1 or 0)
-	end
-
-	return segmentProgressValues
-end
-
 local function UpdateSegmentValues(bar, segmentBars, segmentCount, currentValue, resourceSegmentValues)
 	local r, g, b = GetPowerColor(bar.powerToken, bar.powerType)
-	local runeRechargeColor = bar.resourceKind == "runes" and SCM.resourceBarConfig.runeRechargeColor
+	local isRuneResource = bar.resourceKind == "runes"
+	local runeRechargeColor = isRuneResource and SCM.resourceBarConfig.runeRechargeColor
 	local overflowR, overflowG, overflowB
 	if CHARGED_COMBO_POINT_COLOR then
 		overflowR, overflowG, overflowB = CHARGED_COMBO_POINT_COLOR.r, CHARGED_COMBO_POINT_COLOR.g, CHARGED_COMBO_POINT_COLOR.b
@@ -963,12 +923,20 @@ local function UpdateSegmentValues(bar, segmentBars, segmentCount, currentValue,
 	end
 
 	local chargedSegments = GetChargedSegmentMap(bar, segmentCount, currentValue)
-	local segmentProgressValues = GetProgressValues(bar, segmentCount, currentValue, resourceSegmentValues)
+	local hasPartialSegments = bar.powerType == Enum.PowerType.Essence or bar.resourceKind == "destructionSoulShards"
 
 	for segmentIndex = 1, segmentCount do
 		local segmentBar = segmentBars[segmentIndex]
 		local segmentR, segmentG, segmentB = r, g, b
-		local segmentProgress = segmentProgressValues[segmentIndex] or 0
+		local segmentProgress
+		if isRuneResource then
+			local runeSegment = resourceSegmentValues[segmentIndex]
+			segmentProgress = runeSegment and runeSegment.progress or 0
+		elseif hasPartialSegments then
+			segmentProgress = Clamp(currentValue - (segmentIndex - 1), 0, 1)
+		else
+			segmentProgress = currentValue >= segmentIndex and 1 or 0
+		end
 		if runeRechargeColor and segmentProgress > 0 and segmentProgress < 1 then
 			segmentR, segmentG, segmentB = runeRechargeColor.r, runeRechargeColor.g, runeRechargeColor.b
 		elseif chargedSegments and chargedSegments[segmentIndex] then
@@ -990,7 +958,6 @@ local function UpdateSegments(bar, maxValue, currentValue, resourceSegmentValues
 		bar.SCMSegmentedDisplay = nil
 		bar.SCMActiveSegmentCount = nil
 		HideSegmentBars(bar.SegmentFillBars)
-		HideRegions(bar.RuneSegmentBars)
 		bar:GetStatusBarTexture():SetAlpha(1)
 		return
 	end
@@ -998,7 +965,6 @@ local function UpdateSegments(bar, maxValue, currentValue, resourceSegmentValues
 	bar.SCMSegmentedDisplay = true
 	bar.SCMActiveSegmentCount = segmentCount
 	bar:GetStatusBarTexture():SetAlpha(0)
-	HideRegions(bar.RuneSegmentBars)
 
 	local segmentBars = CreateSegments(bar, segmentCount)
 	local segmentWidth, segmentHeight, inset = GetSegmentBarSize(bar, segmentCount)
@@ -1196,9 +1162,7 @@ local function BarNeedsContinuousRefresh(bar)
 	end
 
 	if bar.resourceKind == "runes" then
-		local _, maxValue, displayValue = GetRuneValues()
-		local hasRuneValues = type(displayValue) == "number" and type(maxValue) == "number"
-		return hasRuneValues and displayValue < maxValue
+		return runeSegments.recharging
 	end
 
 	if bar.powerType == Enum.PowerType.Essence then
