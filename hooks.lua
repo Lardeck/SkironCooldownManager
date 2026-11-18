@@ -68,16 +68,8 @@ local function OnCooldownViewerSettingsRefreshLayout()
 	SCM.RefreshCooldownViewerData(true)
 end
 
-local function ClampLootRollsToScreen()
-	GroupLootContainer:SetClampedToScreen(true)
-end
-
 function SCM.SetHooks()
-	if InCombatLockdown() then
-		EventUtil.RegisterOnceFrameEventAndCallback("PLAYER_REGEN_ENABLED", ClampLootRollsToScreen)
-	else
-		ClampLootRollsToScreen()
-	end
+	GroupLootContainer:SetClampedToScreen(true)
 
 	hooksecurefunc(EssentialCooldownViewer, "RefreshLayout", OnEssentialCooldownViewerLayout)
 	hooksecurefunc(UtilityCooldownViewer, "RefreshLayout", OnUtilityCooldownViewerLayout)

@@ -115,6 +115,10 @@ SCM.DefaultDB = {
 				hide = false,
 			},
 			showAnchorHighlight = true,
+			groupLootAnchor = {
+				enabled = false,
+				position = { point = "BOTTOM", x = 0, y = 200 },
+			},
 			enableCursor = false,
 			cursorUpdateInterval = 0.01,
 			checkForDisabledIcons = true,

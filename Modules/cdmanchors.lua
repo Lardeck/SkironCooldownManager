@@ -360,6 +360,27 @@ local function OnDebugTextureHide(self)
 	end
 end
 
+function SCM.CreateAnchorHighlight(anchorFrame, text, fontHeight, shown)
+	local texture = anchorFrame:CreateTexture(nil, "BACKGROUND")
+	texture:SetAllPoints()
+	texture:SetColorTexture(8 / 255, 8 / 255, 8 / 255, 0.4)
+	texture:SetTexelSnappingBias(0)
+	texture:SetSnapToPixelGrid(false)
+	texture:SetShown(shown)
+	anchorFrame.debugTexture = texture
+
+	local label = anchorFrame:CreateFontString(nil, "OVERLAY", "Permok_Expressway_Large")
+	label:SetPoint("CENTER", anchorFrame, "CENTER", 0, 0)
+	label:SetText(text)
+	label:SetFontHeight(fontHeight)
+	label:SetTextColor(0.90, 0.62, 0, 1)
+	label:SetShown(shown)
+	anchorFrame.debugText = label
+
+	texture:HookScript("OnShow", OnDebugTextureShow)
+	texture:HookScript("OnHide", OnDebugTextureHide)
+end
+
 function SCM:HideAnchorHighlight(anchorFrame)
 	anchorFrame.debugTexture:Hide()
 	anchorFrame.debugText:Hide()
@@ -436,31 +457,16 @@ function SCM:GetAnchor(group, point, anchor, relativePoint, xOffset, yOffset, gr
 		anchorFrame.SCMAnchorGroup = group
 		anchorFrame:SetFrameStrata("HIGH")
 		anchorFrame:SetFrameLevel(1000)
-		anchorFrame.debugTexture = anchorFrame:CreateTexture(nil, "BACKGROUND")
 		anchorFrame:SetScale(Cache.cachedViewerScale or 1)
 
-		anchorFrame.debugTexture:SetAllPoints()
-		anchorFrame.debugTexture:SetColorTexture(8 / 255, 8 / 255, 8 / 255, 0.4)
-		anchorFrame.debugTexture:SetTexelSnappingBias(0)
-		anchorFrame.debugTexture:SetSnapToPixelGrid(false)
-		local showAnchorHighlight = self.OptionsFrame and self.OptionsFrame:IsShown() and self.db.profile.options.showAnchorHighlight
-		anchorFrame.debugTexture:SetShown(showAnchorHighlight)
-
-		anchorFrame.debugText = anchorFrame:CreateFontString(nil, "OVERLAY", "Permok_Expressway_Large")
-		anchorFrame.debugText:SetPoint("CENTER", anchorFrame, "CENTER", 0, 0)
+		local label = group
 		if group > 100 and group < 200 then
-			anchorFrame.debugText:SetText("G" .. group - 100)
+			label = "G" .. group - 100
 		elseif group > 200 then
-			anchorFrame.debugText:SetText("B" .. group - 200)
-		else
-			anchorFrame.debugText:SetText(group)
+			label = "B" .. group - 200
 		end
-		anchorFrame.debugText:SetFontHeight(35)
-		anchorFrame.debugText:SetShown(showAnchorHighlight)
-		anchorFrame.debugText:SetTextColor(0.90, 0.62, 0, 1)
-
-		anchorFrame.debugTexture:HookScript("OnShow", OnDebugTextureShow)
-		anchorFrame.debugTexture:HookScript("OnHide", OnDebugTextureHide)
+		local showAnchorHighlight = self.OptionsFrame and self.OptionsFrame:IsShown() and self.db.profile.options.showAnchorHighlight
+		SCM.CreateAnchorHighlight(anchorFrame, label, 35, showAnchorHighlight)
 
 		self.anchorFrames[group] = anchorFrame
 	end

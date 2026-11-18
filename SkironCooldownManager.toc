@@ -85,6 +85,7 @@ Modules\cdmlayout.lua
 Modules\update.lua
 Modules\cdmconfig.lua
 Modules\anchors.lua
+Modules\grouploot.lua
 Modules\cursor.lua
 Modules\uid.lua
 Modules\Profiles\serialization.lua

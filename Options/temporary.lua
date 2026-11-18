@@ -127,6 +127,34 @@ local function Temporary(self, frame, group)
 	end)
 	ufSettings:AddChild(xOffset)
 
+	local groupLootSettings = AceGUI:Create("InlineGroup")
+	groupLootSettings:SetLayout("flow")
+	groupLootSettings:SetFullWidth(true)
+	groupLootSettings:SetTitle("Group Loot")
+	generalFrame:AddChild(groupLootSettings)
+
+	local canPositionGroupLoot = SCM.CanPositionGroupLoot()
+	local groupLootAnchor = AceGUI:Create("CheckBox")
+	groupLootAnchor:SetRelativeWidth(0.5)
+	groupLootAnchor:SetLabel(canPositionGroupLoot and "Enable Group Loot Anchor" or "Group Loot Anchor (managed by ElvUI)")
+	groupLootAnchor:SetValue(canPositionGroupLoot and options.groupLootAnchor.enabled)
+	groupLootAnchor:SetDisabled(not canPositionGroupLoot)
+	groupLootAnchor:SetCallback("OnValueChanged", function(_, _, value)
+		if value then
+			options.groupLootAnchor.enabled = true
+			SCM:ApplyGroupLootAnchor()
+			return
+		end
+
+		SCM.ShowReloadPopup({
+			checkbox = groupLootAnchor,
+			options = options.groupLootAnchor,
+			key = "enabled",
+			value = false,
+		})
+	end)
+	groupLootSettings:AddChild(groupLootAnchor)
+
 	local resourceBarSettings = AceGUI:Create("InlineGroup")
 	resourceBarSettings:SetLayout("flow")
 	resourceBarSettings:SetFullWidth(true)

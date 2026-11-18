@@ -35,6 +35,7 @@ function SCM:PLAYER_ENTERING_WORLD(isInitialLogin, isReload)
 		SCM.PrepareCooldownViewerData()
 		SCM:InitializeAllAnchorFrames()
 		SCM:ApplyOptions()
+		SCM:ApplyGroupLootAnchor()
 
 		SCM:SetHooks()
 		SCM.RefreshCooldownViewerLayout()
