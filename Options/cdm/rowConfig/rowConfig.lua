@@ -97,6 +97,12 @@ function CDMOptions.SelectRow(widget, rowWidget, parentWidget, anchorOptions, sc
 	end)
 	buttonGroup:AddChild(deleteRowButton)
 
+	local layoutSettings = AceGUI:Create("InlineGroup")
+	layoutSettings:SetFullWidth(true)
+	layoutSettings:SetLayout("flow")
+	layoutSettings:SetTitle("Layout")
+	widget:AddChild(layoutSettings)
+
 	local keepAspectRatio = AceGUI:Create("CheckBox")
 	keepAspectRatio:SetLabel("Lock Aspect Ratio")
 	keepAspectRatio:SetRelativeWidth(0.33)
@@ -113,7 +119,7 @@ function CDMOptions.SelectRow(widget, rowWidget, parentWidget, anchorOptions, sc
 	keepAspectRatio:SetCallback("OnLeave", function()
 		GameTooltip:Hide()
 	end)
-	widget:AddChild(keepAspectRatio)
+	layoutSettings:AddChild(keepAspectRatio)
 
 	local iconWidth = AceGUI:Create("Slider")
 	iconWidth:SetRelativeWidth(0.33)
@@ -122,7 +128,7 @@ function CDMOptions.SelectRow(widget, rowWidget, parentWidget, anchorOptions, sc
 	iconWidth:SetDisabled(data.matchAnchorWidth)
 	iconWidth:SetValue(rowConfig.iconWidth or rowConfig.size)
 
-	widget:AddChild(iconWidth)
+	layoutSettings:AddChild(iconWidth)
 
 	local iconHeight = AceGUI:Create("Slider")
 	iconHeight:SetRelativeWidth(0.33)
@@ -163,50 +169,10 @@ function CDMOptions.SelectRow(widget, rowWidget, parentWidget, anchorOptions, sc
 
 		Options.ApplyModeConfigUpdate(anchorIndex, mode)
 	end)
-	widget:AddChild(iconHeight)
-
-	if rowIndex == 1 then
-		local fixedWidth
-		local useFixedWidth = AceGUI:Create("CheckBox")
-		useFixedWidth:SetLabel("Use Fixed Width")
-		useFixedWidth:SetRelativeWidth(0.25)
-		useFixedWidth:SetValue(rowConfig.useFixedWidth)
-		useFixedWidth:SetDisabled(data.matchAnchorWidth)
-		useFixedWidth:SetCallback("OnValueChanged", function(_, _, value)
-			rowConfig.useFixedWidth = value
-			Options.ApplyModeConfigUpdate(anchorIndex, mode)
-
-			if fixedWidth then
-				rowConfig.fixedWidth = rowConfig.fixedWidth or 200
-				fixedWidth:SetDisabled(not value)
-			end
-		end)
-		useFixedWidth:SetCallback("OnEnter", function(self)
-			GameTooltip:SetOwner(self.frame, "ANCHOR_CURSOR")
-			GameTooltip:SetText("Use Fixed Width", nil, nil, nil, nil, true)
-			GameTooltip:AddLine("This will make the row use a fixed width instead of calculating it based on the number of icons.", 1, 1, 1, true)
-			GameTooltip:Show()
-		end)
-		useFixedWidth:SetCallback("OnLeave", function()
-			GameTooltip:Hide()
-		end)
-		widget:AddChild(useFixedWidth)
-
-		fixedWidth = AceGUI:Create("Slider")
-		fixedWidth:SetRelativeWidth(0.25)
-		fixedWidth:SetSliderValues(100, 1000, 0.1)
-		fixedWidth:SetLabel("Fixed Width")
-		fixedWidth:SetValue(rowConfig.fixedWidth or 200)
-		fixedWidth:SetDisabled(not rowConfig.useFixedWidth)
-		fixedWidth:SetCallback("OnValueChanged", function(_, _, value)
-			rowConfig.fixedWidth = value
-			Options.ApplyModeConfigUpdate(anchorIndex, mode)
-		end)
-		widget:AddChild(fixedWidth)
-	end
+	layoutSettings:AddChild(iconHeight)
 
 	local limit = AceGUI:Create("Slider")
-	limit:SetRelativeWidth(rowIndex == 1 and 0.25 or 0.5)
+	limit:SetRelativeWidth(0.5)
 	limit:SetSliderValues(1, 20, 1)
 	limit:SetLabel("Limit")
 	limit:SetValue(rowConfig.limit)
@@ -214,11 +180,11 @@ function CDMOptions.SelectRow(widget, rowWidget, parentWidget, anchorOptions, sc
 		rowConfig.limit = value
 		Options.ApplyModeConfigUpdate(anchorIndex, mode)
 	end)
-	widget:AddChild(limit)
+	layoutSettings:AddChild(limit)
 
 	local hardLimit = AceGUI:Create("CheckBox")
 	hardLimit:SetLabel("Hard Limit")
-	hardLimit:SetRelativeWidth(rowIndex == 1 and 0.25 or 0.5)
+	hardLimit:SetRelativeWidth(0.5)
 	hardLimit:SetValue(rowConfig.hardLimit)
 	hardLimit:SetCallback("OnValueChanged", function(_, _, value)
 		rowConfig.hardLimit = value
@@ -233,7 +199,75 @@ function CDMOptions.SelectRow(widget, rowWidget, parentWidget, anchorOptions, sc
 	hardLimit:SetCallback("OnLeave", function()
 		GameTooltip:Hide()
 	end)
-	widget:AddChild(hardLimit)
+	layoutSettings:AddChild(hardLimit)
+
+	if rowIndex == 1 then
+		local widthSettings = AceGUI:Create("InlineGroup")
+		widthSettings:SetFullWidth(true)
+		widthSettings:SetLayout("flow")
+		widthSettings:SetTitle("Width")
+		widget:AddChild(widthSettings)
+
+		local useFixedWidth = AceGUI:Create("CheckBox")
+		useFixedWidth:SetLabel("Use Fixed Width")
+		useFixedWidth:SetRelativeWidth(0.5)
+		useFixedWidth:SetValue(rowConfig.useFixedWidth)
+		useFixedWidth:SetDisabled(data.matchAnchorWidth)
+		useFixedWidth:SetCallback("OnEnter", function(self)
+			GameTooltip:SetOwner(self.frame, "ANCHOR_CURSOR")
+			GameTooltip:SetText("Use Fixed Width", nil, nil, nil, nil, true)
+			GameTooltip:AddLine("This will make the row use a fixed width instead of calculating it based on the number of icons.", 1, 1, 1, true)
+			GameTooltip:Show()
+		end)
+		useFixedWidth:SetCallback("OnLeave", function()
+			GameTooltip:Hide()
+		end)
+		widthSettings:AddChild(useFixedWidth)
+
+		local fixedWidth = AceGUI:Create("Slider")
+		fixedWidth:SetRelativeWidth(0.5)
+		fixedWidth:SetSliderValues(100, 1000, 0.1)
+		fixedWidth:SetLabel("Fixed Width")
+		fixedWidth:SetValue(rowConfig.fixedWidth or 200)
+		fixedWidth:SetDisabled(data.matchAnchorWidth or not rowConfig.useFixedWidth)
+		fixedWidth:SetCallback("OnValueChanged", function(_, _, value)
+			rowConfig.fixedWidth = value
+			Options.ApplyModeConfigUpdate(anchorIndex, mode)
+		end)
+		widthSettings:AddChild(fixedWidth)
+
+		useFixedWidth:SetCallback("OnValueChanged", function(_, _, value)
+			rowConfig.useFixedWidth = value
+			rowConfig.fixedWidth = rowConfig.fixedWidth or 200
+			fixedWidth:SetDisabled(not value)
+			Options.ApplyModeConfigUpdate(anchorIndex, mode)
+		end)
+
+		local useMinWidth = AceGUI:Create("CheckBox")
+		useMinWidth:SetLabel("Use Min Width")
+		useMinWidth:SetRelativeWidth(0.5)
+		useMinWidth:SetValue(rowConfig.useMinWidth)
+		useMinWidth:SetDisabled(data.matchAnchorWidth)
+		widthSettings:AddChild(useMinWidth)
+
+		local minWidth = AceGUI:Create("Slider")
+		minWidth:SetRelativeWidth(0.5)
+		minWidth:SetSliderValues(100, 1000, 0.1)
+		minWidth:SetLabel("Min Width")
+		minWidth:SetValue(rowConfig.minWidth or 200)
+		minWidth:SetDisabled(data.matchAnchorWidth or not rowConfig.useMinWidth)
+		minWidth:SetCallback("OnValueChanged", function(_, _, value)
+			rowConfig.minWidth = value
+			Options.ApplyModeConfigUpdate(anchorIndex, mode)
+		end)
+		widthSettings:AddChild(minWidth)
+
+		useMinWidth:SetCallback("OnValueChanged", function(_, _, value)
+			rowConfig.useMinWidth = value
+			minWidth:SetDisabled(not value)
+			Options.ApplyModeConfigUpdate(anchorIndex, mode)
+		end)
+	end
 
 	local stacksSettings = AceGUI:Create("InlineGroup")
 	stacksSettings:SetFullWidth(true)

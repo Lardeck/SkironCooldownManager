@@ -206,7 +206,8 @@ local function GetLayoutBounds(rows, rowConfig, anchorConfig, maxGroupWidth, acc
 	local firstRowConfig = rowConfig[1]
 	local firstRowWidth = (firstRow and firstRow.rowIconWidth) or (firstRowConfig.useFixedWidth and firstRowConfig.fixedWidth) or firstRowConfig.iconWidth or firstRowConfig.size or 47
 	local firstRowHeight = (firstRow and firstRow.rowIconHeight) or firstRowConfig.iconHeight or firstRowConfig.size or 47
-	local effectiveWidth = matchedAnchorWidth or max(firstRowWidth, maxGroupWidth, 1)
+	local minWidth = firstRowConfig.useMinWidth and not firstRowConfig.useFixedWidth and (firstRowConfig.minWidth or 200) or 0
+	local effectiveWidth = matchedAnchorWidth or max(firstRowWidth, maxGroupWidth, minWidth, 1)
 	local effectiveHeight = max(firstRowHeight, accumulatedY - (anchorConfig.spacing or 0), 1)
 	local heightDelta = max(effectiveHeight - firstRowHeight, 0)
 	local point = (anchorConfig.anchor or DEFAULT_ANCHOR)[1]
