@@ -17,66 +17,59 @@ function CustomIcons.IsCustomIconActive(config, iconType, isOnCooldown)
 		return CustomIcons.GetSlotSpellID(config)
 	end
 
-	return iconType == "spell" or iconType == "empty"
+	return iconType == "spell"
 end
 
 local function ProcessCustomIcon(id, config, validChildren, refreshOptions, refreshGlowOptions)
 	local anchorGroup = config.anchorGroup or 1
 	local customFrames = CustomIcons.GetCustomIconFrames(config)
-	if not customFrames then
+	local frame = customFrames and customFrames[id]
+	if not frame then
 		return
 	end
 
-	local frame = customFrames[id]
-	if frame and CustomIcons.ShouldCreateCustomIcon(config) and LoadConditions.ShouldLoad(config) then
-		local iconType = frame.SCMIconType
-		if iconType == "empty" then
-			States.SyncState(frame, true, "ready", true, refreshOptions, refreshGlowOptions)
-			Icons.SetChildVisibilityState(frame, SCM.isOptionsOpen or frame.SCMState.Visibility, true)
-			CDM.AddChildToScopedGroup(Cache.cachedChildrenTbl, anchorGroup, frame, frame.SCMGlobal)
-			CDM.AddChildToScopedGroup(validChildren, anchorGroup, frame, frame.SCMGlobal)
-			return
-		end
-
-		local iconTexture = CustomIcons.GetCustomIconTexture(config, iconType, frame) or frame.SCMIconTexture
-		if not iconTexture and SCM.isOptionsOpen then
-			iconTexture = 134400
-		end
-
-		if iconTexture then
-			if frame.SCMIconTexture ~= iconTexture then
-				frame.SCMIconTexture = iconTexture
-				frame.Icon:SetTexture(iconTexture)
-				frame.Icon:SetTexelSnappingBias(0)
-				frame.Icon:SetSnapToPixelGrid(false)
-				CustomIcons.UpdateCustomIconCraftQuality(frame, iconType, config)
-			end
-			local hasCount = CustomIcons.SetCustomIconCountText(frame, iconType, config)
-			local isOnCooldown, isChargeCooldown = Cooldowns.UpdateCustomIconCooldown(frame, iconType, config)
-			local isActive = CustomIcons.IsCustomIconActive(config, iconType, isOnCooldown)
-			local cooldownState = Cooldowns.GetCustomIconCooldownState(iconType, hasCount, isOnCooldown, isChargeCooldown)
-			States.SyncState(frame, isActive, cooldownState, true, refreshOptions, refreshGlowOptions)
-
-			local shouldShow = SCM.isOptionsOpen or frame.SCMState.Visibility
-
-			Icons.SetChildVisibilityState(frame, shouldShow, true)
-			CDM.AddChildToScopedGroup(Cache.cachedChildrenTbl, anchorGroup, frame, frame.SCMGlobal)
-
-			if shouldShow then
-				if iconType == "spell" then
-					C_Spell.EnableSpellRangeCheck(config.spellID, config.showOutOfRange or false)
-
-					CustomIcons.UpdateCustomIconCharges(frame, config.spellID)
-				end
-
-				CDM.AddChildToScopedGroup(validChildren, anchorGroup, frame, frame.SCMGlobal)
-			end
-		else
-			Icons.SetChildVisibilityState(customFrames[id], false, true)
-		end
-	elseif customFrames[id] then
-		Icons.SetChildVisibilityState(customFrames[id], false, true)
+	if not CustomIcons.ShouldCreateCustomIcon(config) or not LoadConditions.ShouldLoad(config) then
+		States.UntrackSpellUsability(frame)
+		Icons.SetChildVisibilityState(frame, false, true)
+		return
 	end
+
+	local iconType = frame.SCMIconType
+	if iconType == "empty" then
+		States.SyncState(frame, true, "ready", true, refreshOptions, refreshGlowOptions)
+		Icons.SetChildVisibilityState(frame, SCM.isOptionsOpen or frame.SCMState.Visibility, true)
+		CDM.AddChildToScopedGroup(Cache.cachedChildrenTbl, anchorGroup, frame, frame.SCMGlobal)
+		CDM.AddChildToScopedGroup(validChildren, anchorGroup, frame, frame.SCMGlobal)
+		return
+	end
+
+	local iconTexture = CustomIcons.GetCustomIconTexture(config, iconType, frame)
+	if iconTexture and frame.SCMIconTexture ~= iconTexture then
+		frame.SCMIconTexture = iconTexture
+		frame.Icon:SetTexture(iconTexture)
+		frame.Icon:SetTexelSnappingBias(0)
+		frame.Icon:SetSnapToPixelGrid(false)
+		CustomIcons.UpdateCustomIconCraftQuality(frame, iconType, config)
+	end
+
+	local hasCount = CustomIcons.SetCustomIconCountText(frame, iconType, config)
+	local isOnCooldown, isChargeCooldown = Cooldowns.UpdateCustomIconCooldown(frame, iconType, config)
+	local isActive = CustomIcons.IsCustomIconActive(config, iconType, isOnCooldown)
+	local cooldownState = Cooldowns.GetCustomIconCooldownState(iconType, hasCount, isOnCooldown, isChargeCooldown)
+	States.SyncState(frame, isActive, cooldownState, true, refreshOptions, refreshGlowOptions, iconType == "spell" and config.spellID)
+
+	local shouldShow = SCM.isOptionsOpen or frame.SCMState.Visibility
+	Icons.SetChildVisibilityState(frame, shouldShow, true)
+	CDM.AddChildToScopedGroup(Cache.cachedChildrenTbl, anchorGroup, frame, frame.SCMGlobal)
+	if not shouldShow then
+		return
+	end
+
+	if iconType == "spell" then
+		C_Spell.EnableSpellRangeCheck(config.spellID, config.showOutOfRange or false)
+		CustomIcons.UpdateCustomIconCharges(frame, config.spellID)
+	end
+	CDM.AddChildToScopedGroup(validChildren, anchorGroup, frame, frame.SCMGlobal)
 end
 
 local function ProcessCustomIconEntries(entries, validChildren, refreshOptions, refreshGlowOptions)

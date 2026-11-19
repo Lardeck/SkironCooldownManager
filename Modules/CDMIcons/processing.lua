@@ -34,12 +34,12 @@ local function ProcessBuffIcon(child, options, refreshOptions, refreshGlowOption
 	Icons.SetChildVisibilityState(child, shouldShow, true)
 end
 
-local function ProcessRegularIcon(child, options, refreshOptions, refreshGlowOptions)
+local function ProcessRegularIcon(child, spellID, options, refreshOptions, refreshGlowOptions)
 	Icons.SetupRegularIconHooks(child, options)
 	local isActive = Cooldowns.IsRegularIconActive(child)
 	Cooldowns.OverrideRegularAuraCooldown(child.Cooldown, child, options)
 
-	States.SyncState(child, isActive, Cooldowns.GetChildCooldown(child), true, refreshOptions, refreshGlowOptions)
+	States.SyncState(child, isActive, Cooldowns.GetChildCooldown(child), true, refreshOptions, refreshGlowOptions, spellID or false)
 
 	local shouldShow = child.SCMState.Visibility
 	child.SCMChanged = child.SCMChanged or child.SCMShouldBeVisible ~= shouldShow
@@ -146,7 +146,7 @@ local function ProcessSingleChild(child, validChildren, categoryIndex, isBuffIco
 	if isBuffIcon then
 		ProcessBuffIcon(child, options, refreshOptions, refreshGlowOptions)
 	else
-		ProcessRegularIcon(child, options, refreshOptions, refreshGlowOptions)
+		ProcessRegularIcon(child, info.spellID or spellID, options, refreshOptions, refreshGlowOptions)
 	end
 
 	if not InCombatLockdown() then

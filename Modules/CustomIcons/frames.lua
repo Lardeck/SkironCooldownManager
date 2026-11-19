@@ -165,6 +165,10 @@ end
 local function ConfigureCustomIconFrame(frame, id, config, anchorGroup, isGlobal)
 	frame:SetScale(Cache.cachedViewerScale or 1)
 
+	if frame.SCMConfig and (frame.SCMConfig ~= config or (frame.SCMIconType == "spell" and frame.SCMSpellID ~= config.spellID)) then
+		SCM.States.UntrackSpellUsability(frame)
+	end
+
 	frame.SCMConfig = config
 	frame.SCMOrder = config.order
 	frame.SCMCooldownID = id

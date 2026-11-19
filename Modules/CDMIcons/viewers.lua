@@ -136,6 +136,9 @@ function Icons.ExpandScopedAnchorGroups(viewer, viewerData, scopedAnchorGroups)
 					if child.Icon.SCMDesaturated ~= nil then
 						Icons.UpdateChildDesaturation(child, false)
 					end
+
+					SCM.States.UntrackSpellUsability(child)
+
 					child.SCMCooldownID = nil
 					child.SCMState = nil
 

@@ -98,6 +98,7 @@ CONSTANTS.GENERAL = {
 		["cooldown"] = "On Cooldown",
 		["noitem"] = "No Item",
 		["recharging"] = "Recharging",
+		["usableSpell"] = "Usable (Spell)",
 	},
 
 	STATES_SORTED = {
@@ -114,6 +115,7 @@ CONSTANTS.GENERAL = {
 			"inactive",
 			"overridden",
 			"recharging",
+			"usableSpell",
 		},
 		["buffIcon"] = {
 			"always",
@@ -143,6 +145,7 @@ CONSTANTS.GENERAL = {
 			"always",
 			"ready",
 			"cooldown",
+			"usableSpell",
 		},
 		-- "nocharges",
 		-- "maxcharges",

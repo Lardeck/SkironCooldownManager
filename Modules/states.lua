@@ -3,39 +3,27 @@ local States = SCM.States
 local Icons = SCM.Icons
 local UpdateChildDesaturation = Icons.UpdateChildDesaturation
 local GLOBAL_GLOW_SUBREGION = SCM.Constants.GENERAL.GLOBAL_GLOW_SUBREGION
+local EMPTY_EFFECT_RULES = {}
+local trackedUsabilitySpells = {}
 
-function States.GetState(child)
-	if not child.SCMState then
-		child.SCMState = {
-			Visibility = true,
-		}
-	elseif child.SCMState.Visibility == nil then
-		child.SCMState.Visibility = true
-	end
-
-	return child.SCMState
-end
-
-local function GetNextMatchedRule(rules, index, cooldownRuleState, activeRuleState, overriddenRuleState, skipActiveFalse)
+local function GetNextMatchedRule(rules, index, state, skipActiveFalse)
 	local ruleCount = #rules
 
 	while index <= ruleCount do
 		local rule = rules[index]
-		while rule do
-			local ruleState = rule.state
-			if ruleState and (ruleState == "always" or ruleState == cooldownRuleState or ruleState == activeRuleState or ruleState == overriddenRuleState) and not (skipActiveFalse and ruleState == "active" and rule.enabled == false) then
+		local ruleState = rule.state
+		index = index + 1
+
+		if
+			ruleState
+			and (ruleState == "always" or ruleState == state.CooldownState or (ruleState == "active" and state.Active) or (ruleState == "inactive" and state.Active == false) or (ruleState == "overridden" and state.Overridden) or (ruleState == "usableSpell" and state.TrackedSpell and state.TrackedSpell.usable))
+			and not (skipActiveFalse and ruleState == "active" and rule.enabled == false)
+		then
+			while index <= ruleCount and rules[index].elseIf do
 				index = index + 1
-				while index <= ruleCount and rules[index].elseIf do
-					index = index + 1
-				end
-				return rule, index
 			end
 
-			index = index + 1
-			if index > ruleCount or not rules[index].elseIf then
-				break
-			end
-			rule = rules[index]
+			return rule, index
 		end
 	end
 end
@@ -69,7 +57,7 @@ local function GetGlowOptions(config, subregion)
 	return glowType, glowTypeOptions
 end
 
-local function ApplyGlowRules(child, state, config, effectConfig, cooldownRuleState, activeRuleState, overriddenRuleState, refreshGlowOptions)
+local function ApplyGlowRules(child, state, config, effectConfig, refreshGlowOptions)
 	local rules = effectConfig.rules
 	local activeStateGlows = state.ActiveStateGlows
 	if not rules or not rules[1] then
@@ -82,7 +70,7 @@ local function ApplyGlowRules(child, state, config, effectConfig, cooldownRuleSt
 	state.GlowRefreshID = (state.GlowRefreshID or 0) + 1
 	local refreshID = state.GlowRefreshID
 
-	local rule, index = GetNextMatchedRule(rules, 1, cooldownRuleState, activeRuleState, overriddenRuleState)
+	local rule, index = GetNextMatchedRule(rules, 1, state)
 	while rule do
 		local glowType, glowTypeOptions = GetGlowOptions(config, rule.subregion)
 		local glowFrame = child
@@ -120,7 +108,7 @@ local function ApplyGlowRules(child, state, config, effectConfig, cooldownRuleSt
 
 			activeStateGlow.RefreshID = refreshID
 		end
-		rule, index = GetNextMatchedRule(rules, index, cooldownRuleState, activeRuleState, overriddenRuleState)
+		rule, index = GetNextMatchedRule(rules, index, state)
 	end
 
 	if not activeStateGlows then
@@ -213,7 +201,7 @@ local function ShowStateBorder(child, targetFrame, key, borderOptions, refreshID
 	activeBorders[key] = refreshID
 end
 
-local function ApplyBorderRules(child, state, config, effectConfig, cooldownRuleState, activeRuleState, overriddenRuleState)
+local function ApplyBorderRules(child, state, config, effectConfig)
 	local rules = effectConfig.rules
 	local activeBorders = child.SCMActiveStateBorders
 	if not rules or not rules[1] then
@@ -234,7 +222,7 @@ local function ApplyBorderRules(child, state, config, effectConfig, cooldownRule
 	state.BorderRefreshID = (state.BorderRefreshID or 0) + 1
 	local refreshID = state.BorderRefreshID
 
-	local rule, index = GetNextMatchedRule(rules, 1, cooldownRuleState, activeRuleState, overriddenRuleState)
+	local rule, index = GetNextMatchedRule(rules, 1, state)
 	while rule do
 		local borderOptions = subregionOptions[rule.subregion]
 		local targetFrame = child
@@ -246,7 +234,7 @@ local function ApplyBorderRules(child, state, config, effectConfig, cooldownRule
 			local key = "SCMStateBorder_" .. tostring(rule.state) .. "_" .. tostring(rule.subregion)
 			ShowStateBorder(child, targetFrame, key, borderOptions, refreshID)
 		end
-		rule, index = GetNextMatchedRule(rules, index, cooldownRuleState, activeRuleState, overriddenRuleState)
+		rule, index = GetNextMatchedRule(rules, index, state)
 	end
 
 	activeBorders = child.SCMActiveStateBorders
@@ -267,9 +255,9 @@ local function ApplyBorderRules(child, state, config, effectConfig, cooldownRule
 	end
 end
 
-local function ApplyCooldownRules(child, state, effectConfig, cooldownRuleState, activeRuleState, overriddenRuleState)
+local function ApplyCooldownRules(child, state, effectConfig)
 	local rules = effectConfig and effectConfig.rules
-	local rule = rules and rules[1] and GetNextMatchedRule(rules, 1, cooldownRuleState, activeRuleState, overriddenRuleState)
+	local rule = rules and rules[1] and GetNextMatchedRule(rules, 1, state)
 	if not child.Cooldown then
 		return
 	end
@@ -283,12 +271,12 @@ local function ApplyCooldownRules(child, state, effectConfig, cooldownRuleState,
 	local options = SCM.db.profile.options
 	local hideActiveSwipe = (SCM.IsActiveSwipeDisabled(child, options) or child.SCMConfig.hideActiveSwipe) and not child.SCMConfig.forceActiveSwipe
 	local showActiveSwipe = child.Cooldown:GetUseAuraDisplayTime() and not hideActiveSwipe
-	local isRecharging = cooldownRuleState == "recharging" and not showActiveSwipe
+	local isRecharging = state.CooldownState == "recharging" and not showActiveSwipe
 	child.Cooldown:SetDrawEdge(isRecharging)
 	child.Cooldown:SetDrawSwipe(not isRecharging or (child.SCMCustom and true or false))
 	child.Cooldown:SetEdgeColor(1, 0.7, 0, 1)
 	if child.SCMCustom then
-		child.Cooldown:SetReverse(cooldownRuleState == "cooldown" and child.lastCastStartTime and true or false)
+		child.Cooldown:SetReverse(state.CooldownState == "cooldown" and child.lastCastStartTime and true or false)
 	else
 		child.Cooldown:SetReverse(false)
 	end
@@ -300,55 +288,21 @@ local function ApplyCooldownRules(child, state, effectConfig, cooldownRuleState,
 end
 
 local function ApplyStateOptions(child, skipLayoutRefresh, state, refreshGlowOptions)
-	state = state or States.GetState(child)
 	local config = child.SCMConfig
-	local effectRules = config.effectRules
-
-	state.UpdateRequired = false
-
-	if not effectRules then
-		state.UpdateRequired = not state.Visibility
-		state.Visibility = true
-
-		if state.Desaturate ~= nil then
-			state.Desaturate = nil
-			UpdateChildDesaturation(child, false)
-		end
-		if state.ActiveStateGlows then
-			States.StopStateGlows(child)
-		end
-		if child.SCMActiveStateBorders then
-			HideAllStateBorders(child)
-		end
-		if state.UpdateRequired and not skipLayoutRefresh then
-			SCM:ApplyAnchorGroupCDManagerConfig(child.SCMGroup, nil, child.viewerFrame and child.viewerFrame.SCMUpdateScope)
-		end
-		return
-	end
-
-	local cooldownRuleState = state.CooldownState
-	local activeRuleState = state.Active and "active" or state.Active == false and "inactive" or nil
-	local overriddenRuleState = state.Overridden and "overridden" or nil
+	local effectRules = config.effectRules or EMPTY_EFFECT_RULES
 
 	local visibilityRules = effectRules.visibility and effectRules.visibility.rules
-	if visibilityRules and visibilityRules[1] then
-		local shouldShow = true
-		local rule = GetNextMatchedRule(visibilityRules, 1, cooldownRuleState, activeRuleState, overriddenRuleState)
-		if rule then
-			shouldShow = rule.value ~= "hide"
-		end
-
-		state.UpdateRequired = state.Visibility ~= shouldShow
-		state.Visibility = shouldShow
-	else
-		state.UpdateRequired = not state.Visibility
-		state.Visibility = true
-	end
+	local visibilityRule = visibilityRules and visibilityRules[1] and GetNextMatchedRule(visibilityRules, 1, state)
+	local shouldShow = not visibilityRule or visibilityRule.value ~= "hide"
+	state.UpdateRequired = state.Visibility ~= shouldShow
+	state.Visibility = shouldShow
 
 	local desaturateRules = effectRules.desaturate and effectRules.desaturate.rules
 	local shouldDesaturate
 	if desaturateRules and desaturateRules[1] then
-		local rule = GetNextMatchedRule(desaturateRules, 1, cooldownRuleState, activeRuleState, overriddenRuleState, SCM.IsActiveSwipeDisabled(child, SCM.db.profile.options) and not child.SCMConfig.forceActiveSwipe and not child.SCMBuffOptions and not child.SCMBuffBar)
+		local skipActiveFalse = SCM.IsActiveSwipeDisabled(child, SCM.db.profile.options) and not config.forceActiveSwipe and not child.SCMBuffOptions and not child.SCMBuffBar
+		local rule = GetNextMatchedRule(desaturateRules, 1, state, skipActiveFalse)
+
 		if rule and rule.enabled ~= nil then
 			shouldDesaturate = rule.enabled and true or false
 		end
@@ -365,12 +319,13 @@ local function ApplyStateOptions(child, skipLayoutRefresh, state, refreshGlowOpt
 	end
 
 	if effectRules.glow then
-		ApplyGlowRules(child, state, config, effectRules.glow, cooldownRuleState, activeRuleState, overriddenRuleState, refreshGlowOptions)
+		ApplyGlowRules(child, state, config, effectRules.glow, refreshGlowOptions)
 	elseif state.ActiveStateGlows then
 		States.StopStateGlows(child)
 	end
+
 	if effectRules.border then
-		ApplyBorderRules(child, state, config, effectRules.border, cooldownRuleState, activeRuleState, overriddenRuleState)
+		ApplyBorderRules(child, state, config, effectRules.border)
 	elseif child.SCMActiveStateBorders then
 		HideAllStateBorders(child)
 	end
@@ -381,57 +336,92 @@ local function ApplyStateOptions(child, skipLayoutRefresh, state, refreshGlowOpt
 	SCM:ApplyAnchorGroupCDManagerConfig(child.SCMGroup, nil, child.viewerFrame and child.viewerFrame.SCMUpdateScope)
 end
 
-function States.RefreshStateOptions(child, refreshGlowOptions)
-	if child and child.SCMConfig then
-		local state = States.GetState(child)
-		local effectRules = child.SCMConfig.effectRules
-		local cooldownEffect = effectRules and effectRules.cooldown
-		if state.CooldownState or cooldownEffect or state.CooldownRule then
-			local activeRuleState = state.Active and "active" or state.Active == false and "inactive" or nil
-			local overriddenRuleState = state.Overridden and "overridden" or nil
-			ApplyCooldownRules(child, state, cooldownEffect, state.CooldownState, activeRuleState, overriddenRuleState)
+local function HasUsableSpellRule(effectRules)
+	for _, effect in pairs(effectRules) do
+		if effect.rules then
+			for _, rule in ipairs(effect.rules) do
+				if rule.state == "usableSpell" then
+					return true
+				end
+			end
 		end
-		ApplyStateOptions(child, false, state, refreshGlowOptions)
 	end
 end
 
-local function UpdateState(child, updateActive, isActive, updateCooldown, cooldownState, updateOverridden, isOverridden, skipLayoutRefresh, refreshOptions, refreshGlowOptions)
+function States.UntrackSpellUsability(child)
+	local state = child.SCMState
+	if not state then
+		return
+	end
+
+	local spell = state.TrackedSpell
+	state.UsabilitySpellID = nil
+	if not spell then
+		return
+	end
+
+	state.TrackedSpell = nil
+	spell.children[child] = nil
+	if not next(spell.children) then
+		trackedUsabilitySpells[spell.id] = nil
+	end
+end
+
+local function UpdateState(child, isActive, cooldownState, isOverridden, skipLayoutRefresh, refreshOptions, refreshGlowOptions, spellID)
 	local config = child and child.SCMConfig
 	if not config then
 		return false
 	end
 
 	local effectRules = config.effectRules
-	local state = States.GetState(child)
-	local changed = refreshOptions
-	local activeChanged
-	local overriddenChanged
+	local state = child.SCMState
+	if not state then
+		state = { Visibility = true }
+		child.SCMState = state
+	end
 
-	if updateActive and state.Active ~= isActive then
+	if spellID ~= nil and (refreshOptions or state.UsabilitySpellID ~= spellID) then
+		local shouldTrack = spellID and effectRules and HasUsableSpellRule(effectRules)
+		local previousSpell = state.TrackedSpell
+		if previousSpell and (not shouldTrack or previousSpell.id ~= spellID) then
+			States.UntrackSpellUsability(child)
+		end
+
+		if shouldTrack and not state.TrackedSpell then
+			local spell = trackedUsabilitySpells[spellID]
+			if not spell then
+				spell = { id = spellID, children = {}, usable = C_Spell.IsSpellUsable(spellID) }
+				trackedUsabilitySpells[spellID] = spell
+			end
+			spell.children[child] = true
+			state.TrackedSpell = spell
+		end
+		state.UsabilitySpellID = spellID
+		refreshOptions = refreshOptions or previousSpell ~= state.TrackedSpell
+	end
+
+	local activeChanged = isActive ~= nil and state.Active ~= isActive
+	local cooldownChanged = cooldownState ~= nil and state.CooldownState ~= cooldownState
+	local overriddenChanged = isOverridden ~= nil and state.Overridden ~= isOverridden
+
+	if activeChanged then
 		state.Active = isActive
-		activeChanged = true
-		changed = true
 	end
 
-	if updateCooldown and state.CooldownState ~= cooldownState then
+	if cooldownChanged then
 		state.CooldownState = cooldownState
-		changed = true
 	end
 
-	if updateOverridden and state.Overridden ~= isOverridden then
+	if overriddenChanged then
 		state.Overridden = isOverridden
-		overriddenChanged = true
-		changed = true
 	end
 
 	local cooldownEffect = effectRules and effectRules.cooldown
-	if updateCooldown or (cooldownEffect and (activeChanged or overriddenChanged or refreshOptions)) or (refreshOptions and state.CooldownRule) then
-		local activeRuleState = state.Active and "active" or state.Active == false and "inactive" or nil
-		local overriddenRuleState = state.Overridden and "overridden" or nil
-		ApplyCooldownRules(child, state, cooldownEffect, state.CooldownState, activeRuleState, overriddenRuleState)
+	if cooldownState ~= nil or (cooldownEffect and (activeChanged or overriddenChanged or refreshOptions)) or (refreshOptions and state.CooldownRule) then
+		ApplyCooldownRules(child, state, cooldownEffect)
 	end
 
-	if not changed then
+	if not (refreshOptions or activeChanged or cooldownChanged or overriddenChanged) then
 		return false
 	end
 
@@ -443,18 +433,40 @@ local function UpdateState(child, updateActive, isActive, updateCooldown, cooldo
 	return true
 end
 
-function States.SyncState(child, isActive, cooldownState, skipLayoutRefresh, refreshOptions, refreshGlowOptions)
-	return UpdateState(child, isActive ~= nil, isActive, cooldownState ~= nil, cooldownState, false, nil, skipLayoutRefresh, refreshOptions, refreshGlowOptions)
+function States.SyncState(child, isActive, cooldownState, skipLayoutRefresh, refreshOptions, refreshGlowOptions, spellID)
+	return UpdateState(child, isActive, cooldownState, nil, skipLayoutRefresh, refreshOptions, refreshGlowOptions, spellID)
 end
 
 function States.SetCooldownState(child, cooldownState, skipLayoutRefresh, refreshOptions, refreshGlowOptions)
-	return UpdateState(child, false, nil, true, cooldownState, false, nil, skipLayoutRefresh, refreshOptions, refreshGlowOptions)
+	return UpdateState(child, nil, cooldownState, nil, skipLayoutRefresh, refreshOptions, refreshGlowOptions)
 end
 
 function States.SetActiveState(child, isActive, skipLayoutRefresh, refreshOptions, refreshGlowOptions)
-	return UpdateState(child, true, isActive, false, nil, false, nil, skipLayoutRefresh, refreshOptions, refreshGlowOptions)
+	return UpdateState(child, isActive, nil, nil, skipLayoutRefresh, refreshOptions, refreshGlowOptions)
 end
 
 function States.SetOverriddenState(child, isOverridden, skipLayoutRefresh, refreshOptions, refreshGlowOptions)
-	return UpdateState(child, false, nil, false, nil, true, isOverridden, skipLayoutRefresh, refreshOptions, refreshGlowOptions)
+	return UpdateState(child, nil, nil, isOverridden, skipLayoutRefresh, refreshOptions, refreshGlowOptions)
+end
+
+function States.UpdateSpellUsability()
+	local scopedGroups
+	for spellID, spell in pairs(trackedUsabilitySpells) do
+		local usable = C_Spell.IsSpellUsable(spellID)
+		if spell.usable ~= usable then
+			spell.usable = usable
+			for child in pairs(spell.children) do
+				States.SyncState(child, nil, nil, true, true)
+				if child.SCMState.UpdateRequired then
+					scopedGroups = scopedGroups or SCM:AcquireScopedGroupCache()
+					scopedGroups[child.SCMGlobal and SCM.Utils.ToGlobalGroup(child.SCMGroup) or child.SCMGroup] = true
+				end
+			end
+		end
+	end
+
+	if scopedGroups then
+		SCM.CDM.OrderSpells(SCM.CDM.UPDATE_SCOPE.ALL, scopedGroups)
+		SCM:ReleaseScopedGroupCache(scopedGroups)
+	end
 end

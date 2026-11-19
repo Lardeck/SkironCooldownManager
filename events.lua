@@ -147,6 +147,7 @@ end
 
 function SCM:SPELL_UPDATE_USABLE()
 	SCM.CustomIcons.UpdateSpellUsability()
+	SCM.States.UpdateSpellUsability()
 end
 
 function SCM:SPELL_RANGE_CHECK_UPDATE(spellID, isInRange, checksRange)
