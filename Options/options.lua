@@ -251,6 +251,7 @@ local function OpenOptions()
 
 	SCM.isOptionsOpen = true
 	SCM.simulateBuffs = true
+	SCM.SetGroupLootAnchorShown(true)
 
 	if SCM.isForever then
 		SCM:RefreshSwingTimerConfig()
@@ -334,6 +335,7 @@ local function OpenOptions()
 		SCM.OptionsFrame = nil
 		SCM.isOptionsOpen = nil
 		SCM.simulateBuffs = nil
+		SCM.SetGroupLootAnchorShown(false)
 		for _, anchorFrame in pairs(SCM.anchorFrames) do
 			SCM:HideAnchorHighlight(anchorFrame)
 		end
