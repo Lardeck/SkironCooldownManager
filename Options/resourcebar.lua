@@ -731,7 +731,7 @@ local function AddTextSettings(parent, settings)
 	textSettings:AddChild(manaValueOrder)
 end
 
-local function AddBarSettings(parent, title, settings, includeManaRoleSettings, globalSettings)
+local function AddBarSettings(parent, title, settings, globalSettings)
 	local isOverrideActive = SCM.resourceBarOverride.active
 
 	local generalSettings = AceGUI:Create("InlineGroup")
@@ -799,7 +799,7 @@ local function AddBarSettings(parent, title, settings, includeManaRoleSettings, 
 
 	local barHeightAlternative = AceGUI:Create("Slider")
 	barHeightAlternative:SetRelativeWidth(0.33)
-	barHeightAlternative:SetLabel(title == "Primary" and "Bar Height (with Secondary)" or "Bar Height (with Primary)")
+	barHeightAlternative:SetLabel("Bar Height (with Other Bars)")
 	barHeightAlternative:SetSliderValues(3, 40, 0.1)
 	barHeightAlternative:SetValue(settings.heightAlternative)
 	barHeightAlternative:SetCallback("OnValueChanged", function(_, _, value)
@@ -1024,9 +1024,9 @@ local function SelectResourceBarTab(tabGroup, group, settings)
 			AddSpecialColorSettings(scrollFrame, settings)
 		end
 	elseif group == "Primary" then
-		AddBarSettings(scrollFrame, "Primary", settings.primaryBar, true, settings)
+		AddBarSettings(scrollFrame, "Primary", settings.primaryBar, settings)
 	elseif group == "Secondary" then
-		AddBarSettings(scrollFrame, "Secondary", settings.secondaryBar, nil, settings)
+		AddBarSettings(scrollFrame, "Secondary", settings.secondaryBar, settings)
 	end
 end
 
@@ -1099,8 +1099,8 @@ local function ResourceBar(self)
 		currentTab = group
 		SelectResourceBarTab(widget, group, SCM.resourceBarConfig)
 	end)
-	resourceBarTabs:SelectTab("General")
 	resourceBarFrame:AddChild(resourceBarTabs)
+	resourceBarTabs:SelectTab(currentTab)
 
 	resetCurrentOverride:SetCallback("OnClick", function()
 		local resourceBarOverride = SCM.resourceBarOverride
