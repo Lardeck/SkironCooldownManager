@@ -114,7 +114,7 @@ function CDMOptions.CreateSpellConfigTabs(parentScrollFrame, iconSettings, butto
 				return
 			elseif stateType then
 				CDMOptions.ShowIconSettingsMessage(self, iconSettingsTabs, "|TInterface\\common\\help-i:40:40:0:0|tThese options are subject to change.")
-				CDMOptions.CreateStateTabSettings(self, iconSettings, parentScrollFrame, buttonFrame, buttonData, iconConfig, anchorIndex, mode, isGlobal, isBuffBar, stateType)
+				CDMOptions.CreateStateTabSettings(self, buttonFrame, buttonData, iconConfig, anchorIndex, mode, isGlobal, isBuffBar, stateType)
 			elseif group == "subregion" then
 				CDMOptions.ShowIconSettingsMessage(self, iconSettingsTabs, "|TInterface\\common\\help-i:40:40:0:0|tThese options are subject to change.")
 				CDMOptions.CreateSubregionTabSettings(self, iconSettings, parentScrollFrame, buttonFrame, buttonData, iconConfig, anchorIndex, mode, isGlobal, isBuffBar)

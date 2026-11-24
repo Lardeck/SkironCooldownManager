@@ -43,6 +43,7 @@ local function OnHide(child)
 	end
 
 	SCM.StopChildGlows(child)
+	SCM.States.HideAllStateBorders(child)
 end
 
 local function OnSetDesaturated(iconTexture)

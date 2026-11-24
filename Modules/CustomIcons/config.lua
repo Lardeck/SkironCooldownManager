@@ -63,6 +63,14 @@ function SCM:AddCustomIcon(anchorGroup, iconType, configID, order, uniqueID, isG
 		}
 	end
 
+	local effectRules
+	if visibilityRules or desaturateRules then
+		effectRules = {
+			visibility = visibilityRules and { rules = visibilityRules } or nil,
+			desaturate = desaturateRules and { rules = desaturateRules } or nil,
+		}
+	end
+
 	configTable[uniqueID] = {
 		id = uniqueID,
 		iconType = iconType,
@@ -78,14 +86,7 @@ function SCM:AddCustomIcon(anchorGroup, iconType, configID, order, uniqueID, isG
 		useLoadRole = false,
 		loadRoles = { ["TANK"] = false, ["HEALER"] = false, ["DAMAGER"] = false },
 		useSpellKnown = false,
-		effectRules = {
-			visibility = {
-				rules = visibilityRules,
-			},
-			desaturate = {
-				rules = desaturateRules,
-			},
-		},
+		effectRules = effectRules,
 	}
 
 	self:CreateAllCustomIcons(iconType)

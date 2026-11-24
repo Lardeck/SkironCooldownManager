@@ -39,7 +39,8 @@ local function ProcessRegularIcon(child, spellID, options, refreshOptions, refre
 	local isActive = Cooldowns.IsRegularIconActive(child)
 	Cooldowns.OverrideRegularAuraCooldown(child.Cooldown, child, options)
 
-	States.SyncState(child, isActive, Cooldowns.GetChildCooldown(child), true, refreshOptions, refreshGlowOptions, spellID or false)
+	local usabilityChanged = States.SyncSpellUsability(child, spellID, refreshOptions)
+	States.SyncState(child, isActive, Cooldowns.GetChildCooldown(child), true, refreshOptions or usabilityChanged, refreshGlowOptions)
 
 	local shouldShow = child.SCMState.Visibility
 	child.SCMChanged = child.SCMChanged or child.SCMShouldBeVisible ~= shouldShow

@@ -207,6 +207,22 @@ function Cooldowns.UpdateRegularChildrenForSpellOverride(spellID, overrideSpellI
 	UpdateViewerChildrenForSpellOverride(UtilityCooldownViewer, spellID, overrideSpellID, cooldownInfo)
 end
 
+local function QueueRegularIconStateSync(child)
+	if not child.SCMConfig or child.SCMRegularStateSyncPending then
+		return
+	end
+
+	child.SCMRegularStateSyncPending = true
+	RunNextFrame(function()
+		child.SCMRegularStateSyncPending = nil
+		if not child.SCMConfig or child:GetCooldownID() ~= child.SCMCooldownID then
+			return
+		end
+
+		States.SyncState(child, Cooldowns.IsRegularIconActive(child), (Cooldowns.GetChildCooldown(child)))
+	end)
+end
+
 local function OnRegularCooldownChanged(self, changeType)
 	local parent = self.SCMParent or self:GetParent()
 	if not (parent and parent.SCMConfig) or self.SCMSettingRegularSpellCooldown or self.SCMClearingGCD then
@@ -225,9 +241,7 @@ local function OnRegularCooldownChanged(self, changeType)
 		Cooldowns.SetNormalCooldown(self, parent)
 	end
 
-	RunNextFrame(function()
-		States.SyncState(parent, Cooldowns.IsRegularIconActive(parent), (Cooldowns.GetChildCooldown(parent)))
-	end)
+	QueueRegularIconStateSync(parent)
 end
 
 function Cooldowns.SetupCooldownHooks(child, options)
@@ -251,5 +265,8 @@ function Cooldowns.SetupCooldownHooks(child, options)
 	child.Cooldown:HookScript("OnCooldownDone", function(self)
 		OnRegularCooldownChanged(self, "DONE")
 	end)
+
+	-- hooksecurefunc(child, "RefreshIconDesaturation", QueueRegularIconStateSync)
+	-- hooksecurefunc(child, "AddVisualDataSource_Aura", QueueRegularIconStateSync)
 	child.SCMRegularCooldownHook = true
 end

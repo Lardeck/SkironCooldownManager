@@ -213,6 +213,12 @@ local function RemoveSubregionRules(iconConfig, subregionType, removedIndex)
 			rule.subregion = rule.subregion - 1
 		end
 	end
+
+	if rules[1] then
+		rules[1].elseIf = nil
+	end
+
+	SCM.States.PruneEffectRules(iconConfig, subregionType)
 end
 
 local function AddSubregionOptions(subregionData, subregionTabs, iconConfig, buttonFrame, buttonData, anchorIndex, mode, isGlobal, isBuffBar)

@@ -133,14 +133,12 @@ function Icons.ExpandScopedAnchorGroups(viewer, viewerData, scopedAnchorGroups)
 						scopedAnchorGroups[oldGroup] = true
 					end
 				elseif oldCooldownID ~= cooldownID or oldGroup ~= group then
+					SCM.States.Reset(child)
 					if child.Icon.SCMDesaturated ~= nil then
 						Icons.UpdateChildDesaturation(child, false)
 					end
 
-					SCM.States.UntrackSpellUsability(child)
-
 					child.SCMCooldownID = nil
-					child.SCMState = nil
 
 					if oldGroup then
 						Cache.cachedAnchorStates[oldGroup].layoutSignature = nil

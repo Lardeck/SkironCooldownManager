@@ -34,7 +34,6 @@ local CHILD_SCM_RESET_FIELDS = {
 	"SCMGlow",
 	"SCMGlowKey",
 	"SCMPendingCustomGlow",
-	"SCMActiveStateBorders",
 	"SCMActiveGlow",
 	"SCMAnchorFrame",
 	"SCMAnchorFrameStrata",
@@ -167,11 +166,7 @@ function Utils.ResetChildSCMState(child)
 
 	SCM.StopChildGlows(child)
 	SCM:ClearChildPressOverlay(child)
-	SCM.States.UntrackSpellUsability(child)
-
-	if child.SCMActiveStateBorders then
-		SCM.States.HideAllStateBorders(child)
-	end
+	SCM.States.Reset(child)
 
 	if child.Icon then
 		child.Icon.SCMDesaturated = nil

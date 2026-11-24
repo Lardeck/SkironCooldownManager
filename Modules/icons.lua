@@ -8,6 +8,7 @@ local function OnSetAlpha(self)
 end
 function Icons.HideChild(child)
 	SCM.StopChildGlows(child)
+	SCM.States.HideAllStateBorders(child)
 	SCM:ClearChildPressOverlay(child)
 
 	if child.SCMSpellID and not child.SCMBuffOptions and not child.SCMBuffBar then
@@ -63,6 +64,8 @@ function Icons.ShowChild(child)
 		else
 			child:EnableMouse(false)
 		end
+
+		SCM.States.RestoreVisualEffects(child)
 	end
 end
 
@@ -83,8 +86,10 @@ function Icons.SetChildVisibilityState(child, shouldShow, applyNow)
 		end
 		return
 	end
+
 	if not child.SCMShouldBeVisible or child.SCMLayoutLimited then
 		SCM.StopChildGlows(child)
+		SCM.States.HideAllStateBorders(child)
 	end
 
 	if child.SCMCustom and not child:GetAttribute("statehidden") then
@@ -96,6 +101,10 @@ function Icons.SetChildVisibilityState(child, shouldShow, applyNow)
 		child.SCMSkipShowValidation = shouldBeShown and true or nil
 		child:SetShown(shouldBeShown)
 		child.SCMSkipShowValidation = nil
+
+		if shouldBeShown then
+			SCM.States.RestoreVisualEffects(child)
+		end
 	end
 end
 

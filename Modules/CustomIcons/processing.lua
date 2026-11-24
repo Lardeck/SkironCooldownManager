@@ -14,7 +14,7 @@ function CustomIcons.IsCustomIconActive(config, iconType, isOnCooldown)
 	end
 
 	if iconType == "slot" then
-		return CustomIcons.GetSlotSpellID(config)
+		return CustomIcons.GetSlotSpellID(config) and true or false
 	end
 
 	return iconType == "spell"
@@ -56,7 +56,8 @@ local function ProcessCustomIcon(id, config, validChildren, refreshOptions, refr
 	local isOnCooldown, isChargeCooldown = Cooldowns.UpdateCustomIconCooldown(frame, iconType, config)
 	local isActive = CustomIcons.IsCustomIconActive(config, iconType, isOnCooldown)
 	local cooldownState = Cooldowns.GetCustomIconCooldownState(iconType, hasCount, isOnCooldown, isChargeCooldown)
-	States.SyncState(frame, isActive, cooldownState, true, refreshOptions, refreshGlowOptions, iconType == "spell" and config.spellID)
+	local usabilityChanged = States.SyncSpellUsability(frame, iconType == "spell" and config.spellID or nil, refreshOptions)
+	States.SyncState(frame, isActive, cooldownState, true, refreshOptions or usabilityChanged, refreshGlowOptions)
 
 	local shouldShow = SCM.isOptionsOpen or frame.SCMState.Visibility
 	Icons.SetChildVisibilityState(frame, shouldShow, true)

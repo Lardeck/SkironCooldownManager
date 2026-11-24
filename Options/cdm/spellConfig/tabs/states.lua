@@ -1,6 +1,7 @@
 local SCM = select(2, ...)
 local Options = SCM.Options
 local CDMOptions = Options.CDM
+local States = SCM.States
 local CONSTANTS = SCM.Constants.GENERAL
 local AceGUI = LibStub("AceGUI-3.0")
 
@@ -15,12 +16,10 @@ local effectOptions = {
 	},
 	glow = {
 		name = "Glow Settings",
-		allowsMultiple = true,
 		subregionType = "glow",
 	},
 	border = {
 		name = "Border Settings",
-		allowsMultiple = true,
 		subregionType = "border",
 	},
 	cooldown = {
@@ -59,6 +58,19 @@ local function SetDefaultRuleValues(rule, effectKey, iconConfig)
 	end
 end
 
+local function GetSortedStatesForIcon(buttonData, isBuffBar)
+	if buttonData.isBuffIcon then
+		return CONSTANTS.STATES_SORTED.buffIcon
+	end
+
+	local iconType = buttonData.iconType
+	if not isBuffBar and buttonData.isCustom and iconType == "spell" then
+		return CONSTANTS.STATES_SORTED.custom
+	end
+
+	return isBuffBar and CONSTANTS.STATES_SORTED.buffBar or CONSTANTS.STATES_SORTED[iconType] or CONSTANTS.STATES_SORTED.spell
+end
+
 local function GetUsedRuleStates(rules, currentRule)
 	local usedStates = {}
 	if not rules then
@@ -77,14 +89,7 @@ end
 local function GetRuleStateList(rules, currentRule, buttonData, isBuffBar)
 	local usedStates = GetUsedRuleStates(rules, currentRule)
 	local states, statesSorted = {}, {}
-
-	local iconType = buttonData.iconType
-	local constantStatesSorted = isBuffBar and CONSTANTS.STATES_SORTED.buffBar or CONSTANTS.STATES_SORTED[iconType] or CONSTANTS.STATES_SORTED.spell
-	if buttonData.isBuffIcon then
-		constantStatesSorted = CONSTANTS.STATES_SORTED.buffIcon
-	elseif not isBuffBar and buttonData.isCustom and iconType == "spell" then
-		constantStatesSorted = CONSTANTS.STATES_SORTED.custom
-	end
+	local constantStatesSorted = GetSortedStatesForIcon(buttonData, isBuffBar)
 
 	for _, stateKey in ipairs(constantStatesSorted) do
 		if stateKey == currentRule.state or not usedStates[stateKey] then
@@ -97,15 +102,9 @@ local function GetRuleStateList(rules, currentRule, buttonData, isBuffBar)
 end
 
 local function GetAvailableRuleState(rules, buttonData, isBuffBar)
-	local iconType = buttonData.iconType
-	local constantStatesSorted = isBuffBar and CONSTANTS.STATES_SORTED.buffBar or CONSTANTS.STATES_SORTED[iconType] or CONSTANTS.STATES_SORTED.spell
-	if buttonData.isBuffIcon then
-		constantStatesSorted = CONSTANTS.STATES_SORTED.buffIcon
-	elseif not isBuffBar and buttonData.isCustom and iconType == "spell" then
-		constantStatesSorted = CONSTANTS.STATES_SORTED.custom
-	end
-
+	local constantStatesSorted = GetSortedStatesForIcon(buttonData, isBuffBar)
 	local usedStates = GetUsedRuleStates(rules)
+
 	for _, stateKey in ipairs(constantStatesSorted) do
 		if not usedStates[stateKey] then
 			return stateKey
@@ -135,6 +134,13 @@ local function GetSubregionList(iconConfig, subregionType)
 	end
 
 	return subregions, subregionsSorted
+end
+
+local function UpdateColorTable(color, r, g, b, a)
+	color.r = r
+	color.g = g
+	color.b = b
+	color.a = a
 end
 
 local function AddRuleValueControl(effectTabGroup, effectKey, iconConfig, rule, applyConfigUpdate, iconSettingsTabs)
@@ -180,7 +186,7 @@ local function AddRuleValueControl(effectTabGroup, effectKey, iconConfig, rule, 
 		swipeColor:SetHasAlpha(true)
 		swipeColor:SetColor(rule.swipeColor.r, rule.swipeColor.g, rule.swipeColor.b, rule.swipeColor.a)
 		swipeColor:SetCallback("OnValueChanged", function(_, _, r, g, b, a)
-			rule.swipeColor = { r = r, g = g, b = b, a = a }
+			UpdateColorTable(rule.swipeColor, r, g, b, a)
 			applyConfigUpdate()
 		end)
 		effectTabGroup:AddChild(swipeColor)
@@ -211,7 +217,7 @@ local function AddRuleValueControl(effectTabGroup, effectKey, iconConfig, rule, 
 		edgeColor:SetHasAlpha(true)
 		edgeColor:SetColor(rule.edgeColor.r, rule.edgeColor.g, rule.edgeColor.b, rule.edgeColor.a)
 		edgeColor:SetCallback("OnValueChanged", function(_, _, r, g, b, a)
-			rule.edgeColor = { r = r, g = g, b = b, a = a }
+			UpdateColorTable(rule.edgeColor, r, g, b, a)
 			applyConfigUpdate()
 		end)
 		effectTabGroup:AddChild(edgeColor)
@@ -238,7 +244,7 @@ local function AddRuleValueControl(effectTabGroup, effectKey, iconConfig, rule, 
 		targetEditBox:SetLabel("Frame")
 		targetEditBox:SetRelativeWidth(0.66)
 		targetEditBox:SetText(rule.subregionTargetCustom or "")
-		targetEditBox:SetDisabled(not ((rule.subregionTargetType or "self") == "custom"))
+		targetEditBox:SetDisabled((rule.subregionTargetType or "self") ~= "custom")
 		effectTabGroup:AddChild(targetEditBox)
 		Options.AddAnchorParentAutocomplete(targetEditBox, function(value)
 			rule.subregionTargetCustom = value
@@ -247,8 +253,7 @@ local function AddRuleValueControl(effectTabGroup, effectKey, iconConfig, rule, 
 
 		subregionTargetDropdown:SetCallback("OnValueChanged", function(_, _, value)
 			rule.subregionTargetType = value
-
-			targetEditBox:SetDisabled(not (value == "custom"))
+			targetEditBox:SetDisabled(value ~= "custom")
 			applyConfigUpdate()
 		end)
 	end
@@ -288,6 +293,7 @@ local function AddEffectRule(iconSettingsTabs, stateType, container, rules, butt
 		local previousRule = rules[ruleIndex - 1]
 		rules[ruleIndex - 1] = rule
 		rules[ruleIndex] = previousRule
+		rules[1].elseIf = nil
 		applyConfigUpdate()
 		iconSettingsTabs:SelectByPath("state", stateType)
 	end)
@@ -301,6 +307,7 @@ local function AddEffectRule(iconSettingsTabs, stateType, container, rules, butt
 		local nextRule = rules[ruleIndex + 1]
 		rules[ruleIndex + 1] = rule
 		rules[ruleIndex] = nextRule
+		rules[1].elseIf = nil
 		applyConfigUpdate()
 		iconSettingsTabs:SelectByPath("state", stateType)
 	end)
@@ -311,6 +318,11 @@ local function AddEffectRule(iconSettingsTabs, stateType, container, rules, butt
 	remove:SetRelativeWidth(0.33)
 	remove:SetCallback("OnClick", function()
 		tremove(rules, ruleIndex)
+		if rules[1] then
+			rules[1].elseIf = nil
+		end
+
+		States.PruneEffectRules(iconConfig, stateType)
 		applyConfigUpdate()
 		iconSettingsTabs:SelectByPath("state", stateType)
 	end)
@@ -328,7 +340,7 @@ local function AddEffectRule(iconSettingsTabs, stateType, container, rules, butt
 	end
 end
 
-local function AddEffectOptions(iconSettingsTabs, stateType, container, buttonData, iconConfig, ApplyConfigUpdate, isBuffBar)
+local function AddEffectOptions(iconSettingsTabs, stateType, container, buttonData, iconConfig, applyConfigUpdate, isBuffBar)
 	local effectConfig = iconConfig.effectRules and iconConfig.effectRules[stateType]
 	local rules = effectConfig and effectConfig.rules
 
@@ -340,7 +352,7 @@ local function AddEffectOptions(iconSettingsTabs, stateType, container, buttonDa
 				separator:SetRelativeWidth(1)
 				container:AddChild(separator)
 			end
-			AddEffectRule(iconSettingsTabs, stateType, container, rules, buttonData, iconConfig, rule, ruleIndex, ApplyConfigUpdate, isBuffBar)
+			AddEffectRule(iconSettingsTabs, stateType, container, rules, buttonData, iconConfig, rule, ruleIndex, applyConfigUpdate, isBuffBar)
 		end
 
 		local separator = AceGUI:Create("Heading")
@@ -361,18 +373,18 @@ local function AddEffectOptions(iconSettingsTabs, stateType, container, buttonDa
 
 		iconConfig.effectRules = iconConfig.effectRules or {}
 
-		effectConfig = iconConfig.effectRules[stateType]
-		if not effectConfig then
-			effectConfig = {
+		local targetEffectConfig = iconConfig.effectRules[stateType]
+		if not targetEffectConfig then
+			targetEffectConfig = {
 				rules = {},
 			}
-			iconConfig.effectRules[stateType] = effectConfig
+			iconConfig.effectRules[stateType] = targetEffectConfig
 		end
 
-		rules = effectConfig.rules
-		if not rules then
-			rules = {}
-			effectConfig.rules = rules
+		local targetRules = targetEffectConfig.rules
+		if not targetRules then
+			targetRules = {}
+			targetEffectConfig.rules = targetRules
 		end
 
 		local rule = {
@@ -380,14 +392,14 @@ local function AddEffectOptions(iconSettingsTabs, stateType, container, buttonDa
 		}
 
 		SetDefaultRuleValues(rule, stateType, iconConfig)
-		tinsert(rules, rule)
-		ApplyConfigUpdate()
+		tinsert(targetRules, rule)
+		applyConfigUpdate()
 		iconSettingsTabs:SelectByPath("state", stateType)
 	end)
 	container:AddChild(addRule)
 end
 
-function CDMOptions.CreateStateTabSettings(iconSettingsTabs, iconSettings, parentScrollFrame, buttonFrame, buttonData, iconConfig, anchorIndex, mode, isGlobal, isBuffBar, stateType)
+function CDMOptions.CreateStateTabSettings(iconSettingsTabs, buttonFrame, buttonData, iconConfig, anchorIndex, mode, isGlobal, isBuffBar, stateType)
 	if not effectOptions[stateType] then
 		return
 	end

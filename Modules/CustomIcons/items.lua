@@ -65,7 +65,7 @@ function CustomIcons.SetCustomIconCountText(frame, iconType, config)
 
 	if not frame.isOnCooldown then
 		frame.Icon:SetVertexColor(1, 1, 1)
-		if not (config.effectRules and config.effectRules.desaturate) then
+		if not States.HasEffectRules(config, "desaturate") then
 			frame.Icon:SetDesaturated(false)
 		end
 	end

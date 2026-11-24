@@ -36,7 +36,7 @@ function Cooldowns.OnCustomIconCooldownDone(self)
 		return
 	end
 
-	if parent.Icon and not (parent.SCMConfig.effectRules and parent.SCMConfig.effectRules.desaturate) then
+	if parent.Icon and not States.HasEffectRules(parent.SCMConfig, "desaturate") then
 		parent.Icon.SCMDesaturated = nil
 		parent.Icon:SetDesaturated(false)
 	end
@@ -82,7 +82,7 @@ function Cooldowns.UpdateCustomIconCooldown(frame, iconType, config)
 	if customTimerStart then
 		frame.Cooldown:SetCooldown(customTimerStart, customTimerDuration)
 		frame.Cooldown:SetReverse(true)
-		if not (config.effectRules and config.effectRules.desaturate) then
+		if not States.HasEffectRules(config, "desaturate") then
 			frame.Icon:SetDesaturated(false)
 		end
 		UpdateCustomIconGCD(frame, config, true)
@@ -97,7 +97,7 @@ function Cooldowns.UpdateCustomIconCooldown(frame, iconType, config)
 			local durationObject = C_Spell.GetSpellCooldownDuration(config.spellID, true)
 			frame.Cooldown:Clear()
 			frame.Cooldown:SetCooldownFromDurationObject(durationObject)
-			if not (config.effectRules and config.effectRules.desaturate) then
+			if not States.HasEffectRules(config, "desaturate") then
 				frame.Icon:SetDesaturated(true)
 				frame.Icon:SetDesaturation(C_CurveUtil.EvaluateColorValueFromBoolean(durationObject:IsZero(), 0, 1))
 			end
@@ -109,7 +109,7 @@ function Cooldowns.UpdateCustomIconCooldown(frame, iconType, config)
 		if not isOnCooldown and spellCooldown and spellCooldown.isActive and not spellCooldown.isOnGCD then
 			frame.Cooldown:Clear()
 			frame.Cooldown:SetCooldownFromDurationObject(C_Spell.GetSpellChargeDuration(config.spellID, true))
-			if not (config.effectRules and config.effectRules.desaturate) then
+			if not States.HasEffectRules(config, "desaturate") then
 				frame.Icon:SetDesaturated(false)
 			end
 			isOnCooldown = true
@@ -118,7 +118,7 @@ function Cooldowns.UpdateCustomIconCooldown(frame, iconType, config)
 
 		if not isOnCooldown then
 			frame.Cooldown:Clear()
-			if not (config.effectRules and config.effectRules.desaturate) then
+			if not States.HasEffectRules(config, "desaturate") then
 				frame.Icon.SCMDesaturated = nil
 				frame.Icon:SetDesaturated(false)
 			end
@@ -162,7 +162,7 @@ function Cooldowns.UpdateCustomIconCooldown(frame, iconType, config)
 				local color = iconType == "item" and frame.SCMItemCount == 0 and 0.4 or 1
 				frame.Icon:SetVertexColor(color, color, color)
 			end
-			if not (config.effectRules and config.effectRules.desaturate) then
+			if not States.HasEffectRules(config, "desaturate") then
 				frame.Icon:SetDesaturated(isOnCooldown and not isPendingItemCooldown)
 			end
 		end
@@ -173,7 +173,7 @@ function Cooldowns.UpdateCustomIconCooldown(frame, iconType, config)
 	frame.isOnCooldown = false
 	frame.Cooldown:Clear()
 	frame.Icon:SetVertexColor(1, 1, 1)
-	if not (config.effectRules and config.effectRules.desaturate) then
+	if not States.HasEffectRules(config, "desaturate") then
 		frame.Icon:SetDesaturated(false)
 	end
 	UpdateCustomIconGCD(frame, config, iconType == "timer")

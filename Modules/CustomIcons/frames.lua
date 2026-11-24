@@ -103,6 +103,11 @@ local function OnCustomIconShow(self)
 	end
 end
 
+local function OnCustomIconHide(self)
+	SCM.StopChildGlows(self)
+	SCM.States.HideAllStateBorders(self)
+end
+
 local function AcquireCustomIconFrame(customFrames, id)
 	local frame = customFrames[id]
 	if frame and not frame.SCMReleased then
@@ -128,7 +133,7 @@ local function AcquireCustomIconFrame(customFrames, id)
 		frame.OutOfRange:SetTexelSnappingBias(0)
 		frame.OutOfRange:SetSnapToPixelGrid(false)
 		frame:HookScript("OnShow", OnCustomIconShow)
-		frame:HookScript("OnHide", SCM.StopChildGlows)
+		frame:HookScript("OnHide", OnCustomIconHide)
 		frame.SCMCustomIconInitialized = true
 	end
 
@@ -165,8 +170,12 @@ end
 local function ConfigureCustomIconFrame(frame, id, config, anchorGroup, isGlobal)
 	frame:SetScale(Cache.cachedViewerScale or 1)
 
-	if frame.SCMConfig and (frame.SCMConfig ~= config or (frame.SCMIconType == "spell" and frame.SCMSpellID ~= config.spellID)) then
-		SCM.States.UntrackSpellUsability(frame)
+	if frame.SCMConfig then
+		if frame.SCMConfig ~= config then
+			SCM.States.Reset(frame)
+		elseif frame.SCMIconType == "spell" and frame.SCMSpellID ~= config.spellID then
+			SCM.States.UntrackSpellUsability(frame)
+		end
 	end
 
 	frame.SCMConfig = config

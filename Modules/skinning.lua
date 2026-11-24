@@ -174,13 +174,15 @@ local function SetupCooldownFontHook(cooldownFrame)
 	end)
 end
 
+local EMPTY_CONFIG = {}
+
 local function ApplyCooldownSwipe(cooldownFrame, options)
 	local parent = cooldownFrame.SCMParent or cooldownFrame:GetParent()
 	if not parent then
 		return
 	end
 
-	local childConfig = parent.SCMConfig or {}
+	local childConfig = parent.SCMConfig or EMPTY_CONFIG
 	if cooldownFrame:GetUseAuraDisplayTime() or parent.SCMFakeAuraInstanceID or parent.SCMBuffOptions then
 		if (SCM.IsActiveSwipeDisabled(parent, options) or childConfig.hideActiveSwipe) and not childConfig.forceActiveSwipe then
 			if options.recolorNormalSwipe then
@@ -207,6 +209,31 @@ local function ApplyCooldownSwipe(cooldownFrame, options)
 	end
 end
 SCM.ApplyCooldownSwipe = ApplyCooldownSwipe
+
+local function ResetCooldownRule(cooldownFrame, child, cooldownState, options)
+	options = options or SCM.db.profile.options
+	local childConfig = child.SCMConfig
+	local hideActiveSwipe = (SCM.IsActiveSwipeDisabled(child, options) or (childConfig and childConfig.hideActiveSwipe)) and not (childConfig and childConfig.forceActiveSwipe)
+	local showActiveSwipe = cooldownFrame:GetUseAuraDisplayTime() and not hideActiveSwipe
+	local isRecharging = cooldownState == "recharging" and not showActiveSwipe
+
+	cooldownFrame:SetDrawEdge(isRecharging)
+	cooldownFrame:SetDrawSwipe(not isRecharging or (child.SCMCustom and true or false))
+	cooldownFrame:SetEdgeColor(1, 0.7, 0, 1)
+
+	if child.SCMCustom then
+		cooldownFrame:SetReverse(cooldownState == "cooldown" and child.lastCastStartTime and true or false)
+	else
+		cooldownFrame:SetReverse(false)
+	end
+
+	if isRecharging and child.SCMCustom then
+		cooldownFrame:SetSwipeColor(0, 0, 0, 0)
+	else
+		ApplyCooldownSwipe(cooldownFrame, options)
+	end
+end
+SCM.ResetCooldownRule = ResetCooldownRule
 
 local ApplyCooldownRule
 

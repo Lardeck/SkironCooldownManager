@@ -99,13 +99,18 @@ local function CreateTrackedBarSpellConfig(spellConfig)
 end
 
 local function SetEffectRules(config, effect, rules)
+	if not rules or not rules[1] then
+		return
+	end
+
+	config.effectRules = config.effectRules or {}
 	config.effectRules[effect] = {
 		rules = rules,
 	}
 end
 
 local function MigrateVisibilityRules(config, isAura, isCustom, isTimer, isItem)
-	local hasVisibilityRules = config.effectRules.visibility ~= nil
+	local hasVisibilityRules = config.effectRules and config.effectRules.visibility ~= nil
 	local shouldCreateRules = isAura or isCustom or isTimer or config.alwaysShow or config.showWhileInactive or config.hideWhenInactive or config.hideWhenNotOnCooldown
 
 	if not hasVisibilityRules and shouldCreateRules then
@@ -121,9 +126,7 @@ local function MigrateVisibilityRules(config, isAura, isCustom, isTimer, isItem)
 					{ state = "inactive", value = "show" },
 					{ state = "active", value = "hide", elseIf = true },
 				}
-			elseif config.alwaysShow then
-				rules = {}
-			else
+			elseif not config.alwaysShow then
 				rules = {
 					{ state = "active", value = "show" },
 					{ state = "inactive", value = "hide", elseIf = true },
@@ -176,7 +179,7 @@ local function MigrateVisibilityRules(config, isAura, isCustom, isTimer, isItem)
 end
 
 local function MigrateDesaturateRules(config, isAura, canBeActive, desaturateOnCooldown)
-	local hasDesaturateRules = config.effectRules.desaturate ~= nil
+	local hasDesaturateRules = config.effectRules and config.effectRules.desaturate ~= nil
 	if not hasDesaturateRules then
 		if isAura then
 			local rules = {
@@ -208,7 +211,7 @@ local function MigrateDesaturateRules(config, isAura, canBeActive, desaturateOnC
 end
 
 local function MigrateGlowRules(config)
-	local hasGlowRules = config.effectRules.glow ~= nil
+	local hasGlowRules = config.effectRules and config.effectRules.glow ~= nil
 	local shouldCreateRules = config.glowWhileActive or config.glowWhileInactive
 
 	if not hasGlowRules and shouldCreateRules then
@@ -231,7 +234,6 @@ local function MigrateLegacyIconOptions(spellConfig, disableRegularIconActiveSwi
 			for anchorGroup, anchorGroupConfig in pairs(anchorGroups) do
 				local isAura = anchorGroup == buffIconGroup or IsBuffBarGroup(anchorGroup)
 				local canBeActive = not isAura and not disableRegularIconActiveSwipe
-				anchorGroupConfig.effectRules = anchorGroupConfig.effectRules or {}
 				MigrateDesaturateRules(anchorGroupConfig, isAura, canBeActive, not isAura)
 				MigrateVisibilityRules(anchorGroupConfig, isAura, false)
 				MigrateGlowRules(anchorGroupConfig)
@@ -250,7 +252,6 @@ local function MigrateLegacyCustomOptions(customConfig, disableRegularIconActive
 		local isItem = configKey == "itemConfig"
 		local desaturateOnCooldown = configKey == "spellConfig" or isItem or configKey == "slotConfig"
 		for _, config in pairs(configTable) do
-			config.effectRules = config.effectRules or {}
 			MigrateDesaturateRules(config, false, isTimer, desaturateOnCooldown)
 			MigrateVisibilityRules(config, false, true, isTimer and not disableRegularIconActiveSwipe, isItem)
 			MigrateGlowRules(config)
