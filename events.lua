@@ -62,6 +62,10 @@ function SCM:PLAYER_ENTERING_WORLD(isInitialLogin, isReload)
 		eventFrame:RegisterEvent("CVAR_UPDATE")
 		eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
 
+		if SCM.isForever then
+			eventFrame:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
+		end
+
 		SCM.initialized = true
 		SCM.InCombatLockdown = InCombatLockdown()
 		SCM.Callbacks:Fire("SCM_Ready")
@@ -243,6 +247,12 @@ function SCM:TRAIT_CONFIG_UPDATED()
 end
 
 function SCM:ACTIVE_PLAYER_SPECIALIZATION_CHANGED()
+	C_Timer.After(0.5, function()
+		SCM:RunLayoutBatch(SCM.ResetCooldownViewer, SCM)
+	end)
+end
+
+function SCM:PLAYER_SPECIALIZATION_CHANGED()
 	C_Timer.After(0.5, function()
 		SCM:RunLayoutBatch(SCM.ResetCooldownViewer, SCM)
 	end)
