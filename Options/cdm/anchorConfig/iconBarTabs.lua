@@ -49,6 +49,7 @@ function SCM:AddBuffBarAnchor(anchorTabsTbl)
 	local anchorConfig = self.buffBarsAnchorConfig
 	local nextIndex = #anchorConfig + 1
 	anchorConfig[nextIndex] = {
+		useGlobalProfileConfig = true,
 		anchor = { "CENTER", "UIParent", "CENTER", 0, 0 },
 		rowConfig = {
 			[1] = {
@@ -58,6 +59,7 @@ function SCM:AddBuffBarAnchor(anchorTabsTbl)
 			},
 		},
 	}
+	Utils.EnsureProfileAnchorConfig(self.db.profile.options, "buffBarsAnchorConfig", nextIndex, anchorConfig[nextIndex])
 	self:InvalidateAnchorLinks()
 	tinsert(anchorTabsTbl, { value = nextIndex, text = "Anchor B" .. nextIndex })
 	SCM:ApplyBuffBarCDManagerConfig()
@@ -174,8 +176,9 @@ function SCM:RemoveBuffBarAnchor(anchorIndex, anchorTabsTbl)
 end
 
 function SCM:AddAnchor(anchorTabsTbl)
-	local nextIndex = #SCM.anchorConfig + 1
+	local nextIndex = #self.anchorConfig + 1
 	self.anchorConfig[nextIndex] = {
+		useGlobalProfileConfig = true,
 		anchor = { "CENTER", "UIParent", "CENTER", 0, 0 },
 		rowConfig = {
 			[1] = {
@@ -184,6 +187,7 @@ function SCM:AddAnchor(anchorTabsTbl)
 			},
 		},
 	}
+	Utils.EnsureProfileAnchorConfig(self.db.profile.options, "anchorConfig", nextIndex, self.anchorConfig[nextIndex])
 
 	tinsert(anchorTabsTbl, { value = nextIndex, text = "Anchor " .. nextIndex })
 	table.sort(anchorTabsTbl, function(a, b)
@@ -275,18 +279,17 @@ function CDMOptions.CreateAnchorTabGroup(parent, frame, mode)
 	anchorTabs.frame:SetParent(parent.frame)
 	anchorTabs.frame:Show()
 
-	local sourceConfig = (isGlobal and SCM.globalAnchorConfig) or (isBuffBar and SCM.buffBarsAnchorConfig) or SCM.anchorConfig
+	local configKey = isBuffBar and "buffBarsAnchorConfig" or "anchorConfig"
+	local sourceConfig = isGlobal and SCM.globalAnchorConfig or SCM[configKey]
 	local anchorTabsTbl = {}
 	for i, anchorConfig in ipairs(sourceConfig) do
 		local anchorPrefix = (isGlobal and "G" .. i) or (isBuffBar and "B" .. i) or i
-		local anchorName
 		if not isGlobal and anchorConfig.useGlobalProfileConfig then
-			local profileAnchorConfig = CDMOptions.GetProfileAnchorConfig(options, anchorConfig, i, isBuffBar)
-			anchorName = profileAnchorConfig.anchorName
-		else
-			anchorName = anchorConfig.anchorName
+			Utils.EnsureProfileAnchorConfig(options, configKey, i, anchorConfig)
+			anchorConfig = options[configKey][i]
 		end
 
+		local anchorName = anchorConfig.anchorName
 		local anchorLabel = ((isGlobal or isBuffBar) and ("Anchor " .. anchorPrefix)) or ("Anchor " .. i)
 		if anchorName then
 			anchorLabel = anchorPrefix .. " " .. anchorName

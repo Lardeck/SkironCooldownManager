@@ -1,30 +1,8 @@
 local SCM = select(2, ...)
 local Options = SCM.Options
 local CDMOptions = Options.CDM
+local Utils = SCM.Utils
 local AceGUI = LibStub("AceGUI-3.0")
-
-function CDMOptions.GetProfileAnchorConfig(options, data, anchorIndex, isBuffBar)
-	local config
-	if isBuffBar then
-		options.buffBarsAnchorConfig = options.buffBarsAnchorConfig or {}
-		config = options.buffBarsAnchorConfig[anchorIndex]
-	else
-		options.anchorConfig = options.anchorConfig or {}
-		config = options.anchorConfig[anchorIndex]
-	end
-
-	if not config then
-		config = CopyTable(data)
-	end
-
-	if isBuffBar then
-		options.buffBarsAnchorConfig[anchorIndex] = config
-	else
-		options.anchorConfig[anchorIndex] = config
-	end
-
-	return config
-end
 
 function CDMOptions.SelectAnchor(widget, parentWidget, anchorIndex, anchorTabsTbl, mode)
 	widget:ReleaseChildren()
@@ -33,7 +11,7 @@ function CDMOptions.SelectAnchor(widget, parentWidget, anchorIndex, anchorTabsTb
 	local options = SCM.db.profile.options
 	local isGlobal = mode == "global"
 	local isBuffBar = mode == "buffbars"
-	local isProfileConfig = false
+	local configKey = isBuffBar and "buffBarsAnchorConfig" or "anchorConfig"
 
 	if options.showAnchorHighlight then
 		for group, anchorFrame in pairs(SCM.anchorFrames) do
@@ -46,16 +24,18 @@ function CDMOptions.SelectAnchor(widget, parentWidget, anchorIndex, anchorTabsTb
 		end
 	end
 
-	local sourceData = (isGlobal and SCM.globalAnchorConfig[anchorIndex]) or (isBuffBar and SCM.buffBarsAnchorConfig[anchorIndex]) or SCM.anchorConfig[anchorIndex]
+	local sourceConfig = isGlobal and SCM.globalAnchorConfig or SCM[configKey]
+	local sourceData = sourceConfig[anchorIndex]
 	if not sourceData then
 		return
 	end
 
 	local data = sourceData
+	local isProfileConfig = not isGlobal and sourceData.useGlobalProfileConfig
 
-	if not isGlobal and sourceData.useGlobalProfileConfig then
-		data = CDMOptions.GetProfileAnchorConfig(options, data, anchorIndex, isBuffBar)
-		isProfileConfig = true
+	if isProfileConfig then
+		Utils.EnsureProfileAnchorConfig(options, configKey, anchorIndex, sourceData)
+		data = options[configKey][anchorIndex]
 	end
 
 	local anchorName = data.anchorName
@@ -138,29 +118,29 @@ function CDMOptions.SelectAnchor(widget, parentWidget, anchorIndex, anchorTabsTb
 	buttonGroup:AddChild(renameAnchorButton)
 
 	if not isGlobal then
-		local useGlobalProfileConfig = AceGUI:Create("CheckBox")
-		useGlobalProfileConfig:SetLabel("Use Profile Config")
-		useGlobalProfileConfig:SetRelativeWidth(anchorButtonWidth)
-		useGlobalProfileConfig:SetValue(sourceData.useGlobalProfileConfig or false)
-		useGlobalProfileConfig:SetCallback("OnValueChanged", function(_, _, value)
-			sourceData.useGlobalProfileConfig = value
-			if value then
-				CDMOptions.GetProfileAnchorConfig(options, data, anchorIndex, isBuffBar)
+		local useSpecConfig = AceGUI:Create("CheckBox")
+		useSpecConfig:SetLabel("Use Spec Config")
+		useSpecConfig:SetRelativeWidth(anchorButtonWidth)
+		useSpecConfig:SetValue(not sourceData.useGlobalProfileConfig)
+		useSpecConfig:SetCallback("OnValueChanged", function(_, _, value)
+			sourceData.useGlobalProfileConfig = not value
+			if sourceData.useGlobalProfileConfig then
+				Utils.EnsureProfileAnchorConfig(options, configKey, anchorIndex, sourceData)
 			end
 			Options.ApplyModeConfigUpdate(anchorIndex, mode)
 
 			widget:SelectTab(anchorIndex)
 		end)
-		useGlobalProfileConfig:SetCallback("OnEnter", function(self)
+		useSpecConfig:SetCallback("OnEnter", function(self)
 			GameTooltip:SetOwner(self.frame, "ANCHOR_CURSOR")
-			GameTooltip:SetText("Use Profile Config", nil, nil, nil, nil, true)
-			GameTooltip:AddLine("This will use the anchor config for that anchor that is shared by all specs.", 1, 1, 1, true)
+			GameTooltip:SetText("Use Spec Config", nil, nil, nil, nil, true)
+			GameTooltip:AddLine("Use this anchor's settings for the current spec. Uncheck to use the settings shared by all specs in this profile.", 1, 1, 1, true)
 			GameTooltip:Show()
 		end)
-		useGlobalProfileConfig:SetCallback("OnLeave", function()
+		useSpecConfig:SetCallback("OnLeave", function()
 			GameTooltip:Hide()
 		end)
-		buttonGroup:AddChild(useGlobalProfileConfig)
+		buttonGroup:AddChild(useSpecConfig)
 	end
 
 	local point = AceGUI:Create("Dropdown")

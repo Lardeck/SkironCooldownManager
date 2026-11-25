@@ -2,6 +2,22 @@ local SCM = select(2, ...)
 
 local Utils = SCM.Utils
 
+local function InitializeSpecAnchors(config, key, registeredAnchors, defaultAnchors, options)
+	if config[key] then
+		return
+	end
+
+	local anchors = CopyTable(registeredAnchors or defaultAnchors)
+	if not registeredAnchors then
+		for index, anchorConfig in ipairs(anchors) do
+			anchorConfig.useGlobalProfileConfig = true
+			Utils.EnsureProfileAnchorConfig(options, key, index, anchorConfig)
+		end
+	end
+
+	config[key] = anchors
+end
+
 local function GetSpellAnchorGroupConfig(spellConfig, group)
 	return spellConfig and spellConfig.anchorGroup and spellConfig.anchorGroup[group]
 end
@@ -87,8 +103,7 @@ function SCM:UpdateDB()
 
 	local currentConfig = self.DB:LoadData()
 
-	local specAnchorConfig = self.DB.defaultAnchorConfig
-	local specBuffBarsAnchorConfig = self.DB.defaultBuffBarsAnchorConfig
+	local specAnchorConfig, specBuffBarsAnchorConfig
 	local specAurasAnchorConfig = self.DB.defaultAurasAnchorConfig
 	local specSpellConfig = {}
 	local specCustomConfig = {}
@@ -96,8 +111,8 @@ function SCM:UpdateDB()
 	local castBarOverride = {}
 
 	if currentConfig then
-		specAnchorConfig = currentConfig.anchorConfig[specID] or specAnchorConfig
-		specBuffBarsAnchorConfig = (currentConfig.buffBarsAnchorConfig and currentConfig.buffBarsAnchorConfig[specID]) or specBuffBarsAnchorConfig
+		specAnchorConfig = currentConfig.anchorConfig[specID]
+		specBuffBarsAnchorConfig = currentConfig.buffBarsAnchorConfig and currentConfig.buffBarsAnchorConfig[specID]
 		specAurasAnchorConfig = (currentConfig.aurasAnchorConfig and currentConfig.aurasAnchorConfig[specID]) or specAurasAnchorConfig
 		specSpellConfig = currentConfig.spellConfig[specID] or specSpellConfig
 		specCustomConfig = (currentConfig.customConfig and currentConfig.customConfig[specID]) or specCustomConfig
@@ -109,8 +124,9 @@ function SCM:UpdateDB()
 	self.db.profile[class][specID] = self.db.profile[class][specID] or {}
 
 	local currentConfig = self.db.profile[class][specID]
-	currentConfig.anchorConfig = currentConfig.anchorConfig or CopyTable(specAnchorConfig)
-	currentConfig.buffBarsAnchorConfig = currentConfig.buffBarsAnchorConfig or CopyTable(specBuffBarsAnchorConfig)
+	local options = self.db.profile.options
+	InitializeSpecAnchors(currentConfig, "anchorConfig", specAnchorConfig, self.DB.defaultAnchorConfig, options)
+	InitializeSpecAnchors(currentConfig, "buffBarsAnchorConfig", specBuffBarsAnchorConfig, self.DB.defaultBuffBarsAnchorConfig, options)
 	currentConfig.aurasAnchorConfig = currentConfig.aurasAnchorConfig or CopyTable(specAurasAnchorConfig)
 	currentConfig.spellConfig = currentConfig.spellConfig or CopyTable(specSpellConfig)
 	currentConfig.customConfig = currentConfig.customConfig or CopyTable(specCustomConfig)

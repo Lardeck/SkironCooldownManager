@@ -326,6 +326,15 @@ function Utils.GetAnchorConfigForGroup(config, anchorIndex, isGlobal, isBuffBar)
 	return anchorConfig
 end
 
+function Utils.EnsureProfileAnchorConfig(options, configKey, anchorIndex, anchorConfig)
+	local profileAnchors = GetOrCreateTableEntry(options, configKey)
+	if not profileAnchors[anchorIndex] then
+		local sharedAnchor = CopyTable(anchorConfig)
+		sharedAnchor.useGlobalProfileConfig = nil
+		profileAnchors[anchorIndex] = sharedAnchor
+	end
+end
+
 function Utils.GetAnchorConfigForLayoutGroup(config, group)
 	if Utils.IsGlobalGroup(group) then
 		return Utils.GetAnchorConfigForGroup(config, group - GLOBAL_GROUP_OFFSET, true)
